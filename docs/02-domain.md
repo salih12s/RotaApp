@@ -121,6 +121,16 @@ stateDiagram-v2
 
 `Searching → Offering → Completed | Unassigned | Cancelled`
 
+| Durum | Eylem | Hedef |
+|---|---|---|
+| `Searching` | teklif verildi (`StartOffering`) | `Offering` (deneme sayısı +1) |
+| `Searching` | aday yok (`NoCandidatesFound`) | `Searching` (20 sn sonra yeniden) · arama 3 dk'yı doldurduysa `Unassigned` |
+| `Offering` | ret / zaman aşımı (`OfferDeclined`) | `Searching` (sıradaki aday) · 5. teklif de düştüyse `Unassigned` |
+| `Offering` | kabul (`Complete`) | `Completed` |
+| `Searching`, `Offering` | sipariş iptal (`Cancel`) | `Cancelled` |
+
+Süreler ve sayılar `DispatchRules` ile yapılandırılır (varsayılanlar 01-prd iş kuralları tablosundan). Dispatcher yeniden aramayı başlatırsa (`Unassigned → Dispatching`) **yeni** bir `DispatchJob` açılır; biten iş geri açılmaz.
+
 ## 6. Değişmez kurallar (invariant)
 
 | # | Kural | Nerede korunur? |

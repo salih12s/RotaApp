@@ -1,5 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Testcontainers fixtures and test data builders (from F02). -->
+  <!-- Shared test helpers: clock, keys, data builders (F01); Testcontainers fixtures (from F02). -->
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="TngTech.ArchUnitNET" />
+  </ItemGroup>
+
+  <!--
+    PrivateAssets: service references stay inside TestKit and do not flow to test projects.
+    Otherwise every test project would see every service's top-level Program (CS0433 with
+    WebApplicationFactory<Program>). Each test project references its own service directly.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Services\Dispatch\Rota.Dispatch.Api\Rota.Dispatch.Api.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\src\Services\Orders\Rota.Orders.Api\Rota.Orders.Api.csproj" PrivateAssets="all" />
+  </ItemGroup>
 
 </Project>

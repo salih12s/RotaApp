@@ -311,7 +311,9 @@ Rota.Orders.Api/
 | Test | `xunit.v3` | 4.0.3 | Apache-2.0 | F00 | `net8.0` hedefi, .NET 10'da çalışır. Microsoft.Testing.Platform ile koşar (`global.json` → `test.runner`). .NET 10 SDK'da VSTest yolu desteklenmediği için `xunit.runner.visualstudio` ve `Microsoft.NET.Test.Sdk` kullanılmıyor |
 | | `Shouldly` | 4.3.0 | BSD-3-Clause | F00 | FluentAssertions yok (ADR-010); 5.0 henüz preview |
 | | `Microsoft.AspNetCore.Mvc.Testing` | 10.0.15 | MIT | F00 | |
-| | `Testcontainers.PostgreSql`, `.RabbitMq`, `.Redis`, `Microsoft.Extensions.TimeProvider.Testing` | — | — | ilk kullanımda | |
+| | `Microsoft.Extensions.TimeProvider.Testing` | 11.0.0 | MIT | F01 | `FakeTimeProvider`. Paket `net10.0` hedefini de içeriyor ve bağımlılığı yok; ASP.NET 11.x kısıtı bu pakete uygulanmıyor |
+| | `TngTech.ArchUnitNET`, `TngTech.ArchUnitNET.xUnitV3` | 0.13.5 | Apache-2.0 | F01 | Mimari test. `netstandard2.0`; xunit.v3 entegrasyonu var. NetArchTest.Rules seçilmedi: son sürümü 1.3.2 (2021-05), bakımı yok |
+| | `Testcontainers.PostgreSql`, `.RabbitMq`, `.Redis` | — | — | ilk kullanımda | |
 | GraphQL | `HotChocolate.AspNetCore`, `HotChocolate.Data.EntityFramework` | 16.7.5 | MIT | F00 (önden) | v16 kararlı, `net10.0` hedefi var. 16.8 preview'da. F09'da sürüm yeniden kontrol edilir |
 | EF Core + PostgreSQL | `Npgsql.EntityFrameworkCore.PostgreSQL` | — | — | F02 | EF Core 10 uyumlu sürüm |
 | Redis | `StackExchange.Redis` | — | — | ilk kullanımda | GEO, Pub/Sub |

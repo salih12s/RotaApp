@@ -1,0 +1,12 @@
+$ grep -rnE "DateTime(Offset)?\.(Now|UtcNow)|TimeProvider\.System" tests/ src/Services/*/*/Domain/
+tests/Rota.TestKit/TestClock.cs:5:/// <summary>Fixed test time. Tests never read the real clock (no DateTime.Now/UtcNow).</summary>
+
+$ grep -rn "public .* { get; set; }" src/Services/*/*/Domain/
+src/Services/Dispatch/Rota.Dispatch.Api/Domain/DispatchJob.cs:52:    public TimeSpan OfferTtl { get; init; } = TimeSpan.FromSeconds(30);
+src/Services/Dispatch/Rota.Dispatch.Api/Domain/DispatchJob.cs:54:    public int MaxOfferAttempts { get; init; } = 5;
+src/Services/Dispatch/Rota.Dispatch.Api/Domain/DispatchJob.cs:56:    public TimeSpan SearchRetryInterval { get; init; } = TimeSpan.FromSeconds(20);
+src/Services/Dispatch/Rota.Dispatch.Api/Domain/DispatchJob.cs:58:    public TimeSpan SearchTimeout { get; init; } = TimeSpan.FromMinutes(3);
+
+$ grep -rn "throw " src/Services/*/*/Domain/
+src/Services/Dispatch/Rota.Dispatch.Api/Domain/CandidateRanker.cs:38:            throw new ArgumentOutOfRangeException(nameof(averageSpeedKmh), averageSpeedKmh, "Speed must be a positive number.");
+src/Services/Orders/Rota.Orders.Api/Domain/DeliveryCode.cs:91:            throw new ArgumentException($"The delivery code key must be at least {MinKeyBytes} bytes.", nameof(key));

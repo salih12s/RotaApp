@@ -85,12 +85,15 @@ Gateway 2 instance çalıştığında sınırın instance başına değil **topl
 | `forbidden` | 403 | Rol eksik |
 | `not-found` | 404 | Kaynak yok **veya** çağırana ait değil |
 | `invalid-order-transition` | 409 | Durum makinesi geçişe izin vermiyor; `currentStatus` eklenir |
+| `invalid-courier-transition` | 409 | Kurye durum makinesi geçişe izin vermiyor (ör. çevrimdışıyken vardiya kapatma) veya teklif/sipariş kuryenin mevcut işi değil; `currentState` eklenir. `courier-busy` ve `courier-not-available` daha özel olduğu için önce onlar kullanılır |
 | `idempotency-key-reused` | 409 | Aynı anahtar, farklı gövde |
 | `concurrency-conflict` | 409 | Aynı kayda eşzamanlı değişiklik |
 | `offer-not-pending` | 409 | Teklif süresi dolmuş / reddedilmiş / iptal |
 | `courier-busy` | 409 | Teslimattayken vardiya kapatma |
 | `courier-not-available` | 409 | Elle atamada kurye müsait değil |
 | `job-not-assignable` | 409 | Sipariş atanabilir durumda değil |
+| `invalid-job-transition` | — (iç) | `DispatchJob` durum makinesi eylemi reddetti. Dispatch'in kendi iş akışından doğar; HTTP'ye çıkarsa 500 sayılır (bug) |
+| `offer-not-expired` | — (iç) | Zaman aşımı işi süresi dolmamış teklifi kapatmaya çalıştı. Sorgu koşulu (`expires_at <= @now`) bunu dışladığı için normalde oluşmaz |
 | `delivery-code-locked` | 409 | 5 yanlış deneme sonrası |
 | `out-of-service-area` | 422 | Mesafe sınırı aşıldı |
 | `rate-limited` | 429 | `Retry-After` başlığıyla |

@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\BuildingBlocks\Rota.BuildingBlocks.Web\Rota.BuildingBlocks.Web.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Rota.BuildingBlocks.Primitives\Rota.BuildingBlocks.Primitives.csproj" />
   </ItemGroup>
 
 </Project>

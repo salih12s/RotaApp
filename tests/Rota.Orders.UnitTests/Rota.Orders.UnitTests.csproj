@@ -8,7 +8,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="Shouldly" />
+    <PackageReference Include="TngTech.ArchUnitNET.xUnitV3" />
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
 
@@ -19,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Services\Orders\Rota.Orders.Api\Rota.Orders.Api.csproj" />
+    <ProjectReference Include="..\Rota.TestKit\Rota.TestKit.csproj" />
   </ItemGroup>
 
 </Project>

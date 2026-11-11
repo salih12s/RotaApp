@@ -1,0 +1,7 @@
+Rota.Dispatch.UnitTests.dll (net10.0|x64) passed (1s 230ms)
+Rota.Orders.UnitTests.dll (net10.0|x64) passed (1s 492ms)
+Rota.Dispatch.UnitTests.dll (net10.0|x64) passed (1s 230ms)
+Rota.Orders.UnitTests.dll (net10.0|x64) passed (1s 492ms)
+  total: 232
+  failed: 0
+  succeeded: 232

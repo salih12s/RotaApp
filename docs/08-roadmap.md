@@ -5,8 +5,8 @@
 | Faz | Ad | Boyut | Durum |
 |---|---|---|---|
 | F00 | İskelet, altyapı ve CI | M | ✅ PASS |
-| F01 | Domain çekirdeği | M | ⏭️ Sıradaki |
-| F02 | Orders servisi | L | Bekliyor |
+| F01 | Domain çekirdeği | M | ✅ PASS |
+| F02 | Orders servisi | L | ⏭️ Sıradaki |
 | F03 | Güvenilir mesajlaşma (Outbox/Inbox) | L | Bekliyor |
 | F04 | Tracking: konum akışı | L | Bekliyor |
 | F05 | Dispatch: otomatik atama | XL | Bekliyor |
@@ -99,11 +99,13 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:5101/health/live
 **Öğrenilecek kavramlar:** Aggregate, value object, durum makinesi, `Result` tipi (exception'sız iş hatası), mimari test, `[Theory]` ile tablo bazlı test.
 
 **Yapılacaklar**
-- [ ] `Rota.BuildingBlocks.Primitives`: `Result`, `Result<T>`, `Error` (iş kuralı içermez)
-- [ ] Orders `Domain/`: `Order` (geçişler: `MarkDispatching`, `Assign`, `MarkUnassigned`, `Cancel`, `PickUp`, `Deliver(code)`, `FailDelivery`, `MarkReturned`), `OrderStatus` geçiş tablosu, `GeoPoint`, `Distance` (haversine), `ServiceAreaPolicy` (≤ 15 km), `DeliveryCode` (`RandomNumberGenerator` ile üretim; HMAC-SHA256 + sunucu anahtarı ile özet; 5 yanlışta kilit)
-- [ ] Dispatch `Domain/`: `Courier`, `Offer`, `DispatchJob`, `CandidateRanker` (yalnız `Available`, mesafeye göre, eşitlikte en taze konum), `EtaCalculator`
-- [ ] Mimari test: `Domain` ad alanları `Microsoft.EntityFrameworkCore` ve `Microsoft.AspNetCore` tiplerine bağımlı olamaz (ArchUnitNET veya NetArchTest — güncellik/lisans kontrol edilerek seçilir)
-- [ ] Unit testler; veri kurucular (`OrderBuilder`, `CourierBuilder`) `Rota.TestKit`'te
+- [x] `Rota.BuildingBlocks.Primitives`: `Result`, `Result<T>`, `Error` (iş kuralı içermez)
+- [x] Orders `Domain/`: `Order` (geçişler: `MarkDispatching`, `Assign`, `MarkUnassigned`, `Cancel`, `PickUp`, `Deliver(code)`, `FailDelivery`, `MarkReturned`), `OrderStatus` geçiş tablosu, `GeoPoint`, `Distance` (haversine), `ServiceAreaPolicy` (≤ 15 km), `DeliveryCode` (`RandomNumberGenerator` ile üretim; HMAC-SHA256 + sunucu anahtarı ile özet; 5 yanlışta kilit)
+- [x] Dispatch `Domain/`: `Courier`, `Offer`, `DispatchJob`, `CandidateRanker` (yalnız `Available`, mesafeye göre, eşitlikte en taze konum), `EtaCalculator`
+- [x] Mimari test: `Domain` ad alanları `Microsoft.EntityFrameworkCore` ve `Microsoft.AspNetCore` tiplerine bağımlı olamaz (ArchUnitNET veya NetArchTest — güncellik/lisans kontrol edilerek seçilir)
+- [x] Unit testler; veri kurucular (`OrderBuilder`, `CourierBuilder`) `Rota.TestKit`'te
+
+> **F01 kararları (Salih onayı, 2026-11-11):** Kurye geçersiz geçişi → `invalid-courier-transition` (daha özel olduğu yerde `courier-busy` / `courier-not-available`); `DispatchJob` için iç kodlar `invalid-job-transition`, `offer-not-expired` (06 §5). Ret/zaman aşımında iş `Offering → Searching`, 5. denemede `Unassigned` (02 §5.4). Kilit açma deneme sayacını sıfırlar. İptal edilmiş siparişe atama domain'de hata döner; "yok say + log" kararı tüketicinin (F03/F05). Mimari test: ArchUnitNET 0.13.5. Kanıt: `docs/evidence/f01/`.
 
 > **Not (öğretici):** 4 haneli kodun yalnızca 10.000 olasılığı var; düz hash (SHA-256) çevrimdışı kaba kuvvetle saniyede kırılır. Bu yüzden sunucu tarafı gizli anahtarlı HMAC kullanıyoruz: DB sızsa bile anahtar olmadan kod bulunamaz. Asıl koruma yine de deneme kilididir.
 

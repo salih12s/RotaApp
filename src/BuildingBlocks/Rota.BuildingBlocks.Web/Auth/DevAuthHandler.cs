@@ -8,7 +8,8 @@ namespace Rota.BuildingBlocks.Web.Auth;
 
 /// <summary>
 /// Development/test-only authentication (ADR-006): the caller states who they are in a header,
-/// <c>X-Dev-User: merchant:&lt;merchantId&gt;</c>, <c>courier:&lt;guid&gt;</c> or <c>dispatcher:&lt;id&gt;</c>.
+/// <c>X-Dev-User: merchant:&lt;merchantId&gt;</c>, <c>courier:&lt;guid&gt;</c>, <c>dispatcher:&lt;id&gt;</c> or <c>service:&lt;name&gt;</c>.
+/// Works for gRPC too: call metadata travels as HTTP/2 headers.
 /// It produces the same claims Keycloak will issue in F08, so authorization code does not change.
 /// </summary>
 public sealed class DevAuthHandler(
@@ -67,6 +68,11 @@ public sealed class DevAuthHandler(
             [
                 new(RotaClaims.Subject, id),
                 new(RotaClaims.Role, RotaRoles.Dispatcher),
+            ],
+            RotaRoles.Service =>
+            [
+                new(RotaClaims.Subject, id),
+                new(RotaClaims.Role, RotaRoles.Service),
             ],
             _ => null,
         };

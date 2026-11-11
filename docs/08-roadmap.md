@@ -8,8 +8,8 @@
 | F01 | Domain çekirdeği | M | ✅ PASS |
 | F02 | Orders servisi | L | ✅ PASS |
 | F03 | Güvenilir mesajlaşma (Outbox/Inbox) | L | ✅ PASS |
-| F04 | Tracking: konum akışı | L | ⏭️ Sıradaki |
-| F05 | Dispatch: otomatik atama | XL | Bekliyor |
+| F04 | Tracking: konum akışı | L | ✅ PASS |
+| F05 | Dispatch: otomatik atama | XL | ⏭️ Sıradaki |
 | F06 | Teslimat akışı ve iptal kuralları | M | Bekliyor |
 | F07 | Notifications: güvenilir webhook | M | Bekliyor |
 | F08 | Gateway + Keycloak + yetki | L | Bekliyor |
@@ -19,6 +19,8 @@
 | F12 | Container'lar, dağıtım ve README | M | Bekliyor |
 | F13 | *(opsiyonel)* Dispatcher harita arayüzü | M | Bekliyor |
 | F14 | *(opsiyonel, koşullu)* Kafka ile yeniden oynatma | M | Bekliyor |
+
+> **Devir notu (2026-11-11, F04 sonu):** F00–F04 bitti ve commit'li (`faz/f04-tracking`, F03'ün üstünden açıldı; `main`'e henüz PR yok). Sıradaki **F05** (XL, Opus önerilir, yeni oturumda). F05 için hazır olanlar: Dispatch'te `DispatchDbContext`/`dispatch_jobs`, `OrderCreated` tüketicisi, outbox/inbox altyapısı (F03); Tracking'te `GetNearbyCouriers`/`GetLastLocations` gRPC uçları ve `service` rolü (F04, deadline/retry istemci tarafı F05'te yazılacak). Bilinen açıklar: bayat kurye temizlik işi, konum hız sınırı, DB `/health/ready` kontrolü. Yerelde servis çalıştırmak için PostgreSQL port çakışması (5432) ve user-secrets anahtarları gerekir (bkz. `docs/evidence/f02/README.md`). Test komutu: `dotnet test RotaApp.slnx` (Docker açık olmalı; 427 test).
 
 Durum değerleri: `Bekliyor` · `⏭️ Sıradaki` · `🔨 Devam ediyor` · `✅ PASS` · `❌ FAIL (gerekçe)`. Faz kapanınca bu tablo aynı PR'da güncellenir.
 
@@ -229,14 +231,16 @@ docker compose -f deploy/docker-compose.yml start rabbitmq
 **Öğrenilecek kavramlar:** gRPC client-streaming ve unary, protobuf, deadline, Redis GEO (`GEOADD`, `GEOSEARCH`), Lua script ile atomik karşılaştır-ve-yaz, `Channel<T>` ile geri basınç, Npgsql `COPY`, tablo bölümleme (partitioning), simülatör tasarımı.
 
 **Yapılacaklar**
-- [ ] `Rota.Contracts.Protos`: `tracking.v1` ([05 §2](05-contracts.md)), `Grpc.Tools` ile derleme
-- [ ] `StreamLocations`: kurye kimliği token/`DevAuth`'tan; seq kontrolü + `GEOADD` + `lastseen` + `lastseq` **tek Lua script**'te (aynı kuryenin iki eşzamanlı akışı konumu geri alamaz)
-- [ ] Redis Pub/Sub yayını `trk:courier:{id}:location`
-- [ ] Toplu yazıcı: sınırlı `Channel<T>` → 500 ms / 1.000 nokta → `COPY` → staging → `INSERT ... ON CONFLICT DO NOTHING`
-- [ ] Bölüm bakım işi: önümüzdeki 3 günün bölümünü oluştur, 30 günden eskiyi `DROP`
-- [ ] `GetNearbyCouriers` (`GEOSEARCH` + `lastseen` tazelik filtresi), `GetLastLocations`
-- [ ] `Rota.Sim.CourierFleet` v1: N kurye İstanbul sınırları içinde rastgele rotada, 3 sn'de bir; parametreli kopma ve sırasız gönderim
-- [ ] İlk kaba ölçüm: kaç nokta/sn işlendi (hedef yok, yalnız taban çizgisi)
+- [x] `Rota.Contracts.Protos`: `tracking.v1` ([05 §2](05-contracts.md)), `Grpc.Tools` ile derleme
+- [x] `StreamLocations`: kurye kimliği token/`DevAuth`'tan; seq kontrolü + `GEOADD` + `lastseen` + `lastseq` **tek Lua script**'te (aynı kuryenin iki eşzamanlı akışı konumu geri alamaz)
+- [x] Redis Pub/Sub yayını `trk:courier:{id}:location`
+- [x] Toplu yazıcı: sınırlı `Channel<T>` → 500 ms / 1.000 nokta → `COPY` → staging → `INSERT ... ON CONFLICT DO NOTHING`
+- [x] Bölüm bakım işi: önümüzdeki 3 günün bölümünü oluştur, 30 günden eskiyi `DROP`
+- [x] `GetNearbyCouriers` (`GEOSEARCH` + `lastseen` tazelik filtresi), `GetLastLocations`
+- [x] `Rota.Sim.CourierFleet` v1: N kurye İstanbul sınırları içinde rastgele rotada, 3 sn'de bir; parametreli kopma ve sırasız gönderim
+- [x] İlk kaba ölçüm: kaç nokta/sn işlendi (hedef yok, yalnız taban çizgisi)
+
+> **F04 kararları (Salih onayı, 2026-11-11, plan kısmı; ayrıntılar uygulama sırasında):** (1) Geçmiş yazımı ham `COPY`, EF yok; bölümlü tablo migration'da elle SQL (`TrackingDbContext` model içermez, yalnız migration taşır). (2) Redis erişimi `StackExchange.Redis` + `LuaScript`. (3) Simülatör koordinat üretir, harita çizmez. (4) Tracking olay yayınlamaz (outbox yok). **Uygulama sırasında eklenenler (planda yoktu):** `service` rolü ve `ServiceOnly` politikası (sorgu uçları yalnız servislere açık); `trk:lastrec` anahtarı (cihaz saati, `GetLastLocations` için); `recorded_at` kabul penceresi (24 sa geri, 5 dk ileri; bölümsüz satırı önler); `INVALID_ARGUMENT` akışı sonlandırır; geçmiş yazımı en iyi çabadır (DB düşerse toplu yazma düşürülür, akış durmaz); `GetNearbyCouriers` aramayı tazelik filtresiyle tek script'te genişleterek yapar. Kanıt: `docs/evidence/f04/`, ölçüm: `perf/reports/2026-11-11-tracking-baseline.md`.
 
 **Kapsam dışı:** Teklif akışı (F05), Ops API yayını tüketimi (F09).
 

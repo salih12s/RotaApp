@@ -23,7 +23,8 @@ Test piramidi hedefi (yaklaşık): unit %60 · integration/API %35 · E2E %5.
 | `Rota.Orders.IntegrationTests` | API, idempotency, optimistic concurrency, outbox, tüketiciler | PostgreSQL container |
 | `Rota.Dispatch.UnitTests` | Aday sıralama, ETA, `Courier`/`Offer` geçişleri | Yok |
 | `Rota.Dispatch.IntegrationTests` | Çift atama yarışı, zaman aşımı + `SKIP LOCKED`, teklif akışı, elle atama | PostgreSQL + Redis (+ Tracking için fake gRPC sunucusu) |
-| `Rota.Tracking.IntegrationTests` | Konum akışı, sıra numarası, GEO sorgusu, toplu yazma | PostgreSQL + Redis |
+| `Rota.Tracking.UnitTests` | Konum/sorgu kuralları, bölüm planı (tarih aritmetiği), toplu yazıcı (`LocationBatcher`: boyut, süre, geri basınç), kurye simülatörünün saf parçaları | Yok |
+| `Rota.Tracking.IntegrationTests` | Konum akışı, sıra numarası, GEO sorgusu, toplu yazma, bölüm bakımı, gRPC yetkisi | PostgreSQL + Redis |
 | `Rota.Notifications.IntegrationTests` | İmza, retry zamanlaması, DLQ, bulkhead, SSRF reddi | PostgreSQL + sahte HTTP alıcı |
 | `Rota.OpsApi.IntegrationTests` | GraphQL sorguları, N+1 sayımı, maliyet sınırı, subscription | PostgreSQL + Redis |
 | `Rota.Contracts.Tests` | Olay şeması snapshot'ları | Yok |
@@ -36,8 +37,9 @@ Test piramidi hedefi (yaklaşık): unit %60 · integration/API %35 · E2E %5.
 - **Isolation:** Her test kendi verisini kurar; test başına benzersiz `merchantId`/`courierId` (`Guid.CreateVersion7()`). Tablo temizlemeye dayanmayız; testler paralel ve sırasız çalışabilir.
 - **Trait ve filtre:** Mesajlaşma testleri `[Trait("Category", "Messaging")]` taşır. Microsoft.Testing.Platform'da VSTest'teki `--filter Category=Messaging` yerine `--filter-trait "Category=Messaging"` kullanılır.
 - **Mesajlaşma testlerinde izolasyon:** Broker assembly başına bir kez ve ilk kullanımda başlar; her test kendi **virtual host**'unda, kendi Orders ve Dispatch veritabanlarıyla çalışır (aynı kuyruk adlarını kullanan testler birbirinin mesajını alamaz). Kesinti (R-7) testi kendi broker'ını sabit portla açar, çünkü durdurulup yeniden başlatılır. Test, tüketici topolojisi hazır olmadan olay yayınlamaz (bkz. 05 §3 "Bilinen sınır").
+- **Paylaşılan Redis anahtarı ve testler:** `trk:geo:couriers` tüm testlerde ortaktır; "yakındaki kuryeler" testleri bu yüzden her test için dünyanın **ayrı bir köşesini** kullanır (`TestArea`), böylece birinin kuryesi diğerinin sorgusuna girmez. Saat ileri saran testler kendi `TrackingApiFactory`'sini açar; paylaşılan fabrikanın saati sabit kalır.
 - **Container paylaşımı:** Container test **assembly'si** başına bir kez başlar ve bir kez migrate edilir (xUnit v3 assembly fixture). Collection fixture yerine bunu seçtik: aynı koleksiyondaki sınıflar sırayla koşar, assembly fixture'da sınıflar paralel kalır. Her test sınıfı aynı DB'yi farklı kimliklerle kullanır.
-- **Zaman:** `FakeTimeProvider` ile saat ileri sarılır; 30 sn'lik teklif testi 30 sn beklemez.
+- **Zaman:** `FakeTimeProvider` ile saat ileri sarılır; 30 sn'lik teklif testi 30 sn beklemez. **İş saati** (`received_at`, kabul penceresi, tazelik) `TimeProvider`'dan gelir; **altyapı zamanlayıcıları** (toplu yazma penceresi, yeniden deneme beklemesi, polling) gerçek saatle çalışır. Aksi hâlde testin dondurduğu saat bir zamanlayıcıyı sonsuza dek bekletir (F04'te yaşandı: toplu yazıcının 500 ms penceresi hiç dolmadı, testler tesadüfen geçiyordu).
 - **Asenkron bekleme:** `Task.Delay(1000)` yerine "koşul gerçekleşene kadar, en fazla N sn bekle" yardımcısı. Sabit uyku = flaky test.
 - **Race testleri:** `Task.WhenAll` + `Barrier`/`TaskCompletionSource` ile isteklerin gerçekten aynı anda başlaması sağlanır; her race testi döngüyle (ör. 20 tur) çalıştırılır.
 - **Assertion:** Shouldly (`result.StatusCode.ShouldBe(409)`).

@@ -38,5 +38,7 @@
     <Project Path="tests/Rota.Orders.IntegrationTests/Rota.Orders.IntegrationTests.csproj" />
     <Project Path="tests/Rota.Orders.UnitTests/Rota.Orders.UnitTests.csproj" />
     <Project Path="tests/Rota.TestKit/Rota.TestKit.csproj" />
+    <Project Path="tests/Rota.Tracking.IntegrationTests/Rota.Tracking.IntegrationTests.csproj" />
+    <Project Path="tests/Rota.Tracking.UnitTests/Rota.Tracking.UnitTests.csproj" />
   </Folder>
 </Solution>

@@ -1,0 +1,65 @@
+passed Infrastructure.LocationBatcherTests.ReadBatches_ReturnsNothingForAnEmptyCompletedQueue
+passed Simulator.FleetSimulatorTests.Percentile_UsesNearestRank
+passed Domain.PartitionPlanTests.TryParseDay_NamesThatAreNotDailyPartitions_AreIgnored(name: "location_points_20261301")
+passed Domain.LocationRulesTests.Validate_MissingRecordedAt_IsRejected
+passed Domain.QueryRulesTests.ValidateNearby_ACentreRedisCannotHold_IsRejected(lat: NaN, lon: 29)
+passed Domain.PartitionPlanTests.TryParseDay_NamesThatAreNotDailyPartitions_AreIgnored(name: "location_points_2026")
+passed Domain.QueryRulesTests.ValidateNearby_ACentreRedisCannotHold_IsRejected(lat: 40, lon: NaN)
+passed Domain.PartitionPlanTests.TryParseDay_NamesThatAreNotDailyPartitions_AreIgnored(name: "other_20261111")
+passed Domain.QueryRulesTests.ValidateNearby_ACentreRedisCannotHold_IsRejected(lat: 86, lon: 29)
+passed Domain.PartitionPlanTests.TryParseDay_NamesThatAreNotDailyPartitions_AreIgnored(name: "location_points_staging")
+passed Domain.LocationRulesTests.Validate_NormalPoint_Succeeds
+passed Domain.LocationRulesTests.Validate_FutureTime_IsAcceptedWithinTheSkew_RejectedBeyondIt
+passed Domain.LocationRulesTests.Validate_LatitudeAtTheEdge_Succeeds(lat: -85.051128779999999)
+passed Domain.LocationRulesTests.Validate_LatitudeAtTheEdge_Succeeds(lat: 85.051128779999999)
+passed Simulator.FleetSimulatorTests.RouteWalker_ActuallyTravels
+passed Simulator.FleetSimulatorTests.RouteWalker_NeverMovesFasterThanTheCourier
+passed Domain.QueryRulesTests.ValidateCourierIds_ExactlyTheLimit_IsAllowed_OneMoreIsNot
+passed Simulator.FleetSimulatorTests.RouteWalker_SameSeed_SameRoute
+passed Domain.PartitionPlanTests.RequiredDays_UseTheUtcDate_NotTheLocalOne
+passed Infrastructure.LocationBatcherTests.Enqueue_WhenTheQueueIsFull_WaitsUntilTheReaderMakesRoom
+passed Infrastructure.LocationBatcherTests.ReadBatches_FullBatchesGoOutAsSoonAsTheyFill_TheRestWhenTheQueueEnds
+passed Simulator.FleetSimulatorTests.FleetOptions_Parse_RejectsNonsense(name: "--disconnect-rate", value: "1.5")
+passed Domain.QueryRulesTests.ValidateNearby_ExplicitValues_AreKept
+passed Simulator.FleetSimulatorTests.FleetOptions_Parse_RejectsNonsense(name: "--interval", value: "0")
+passed Domain.QueryRulesTests.ValidateNearby_TheEdgesOfEveryRange_AreAllowed(radius: 1, limit: 1, maxAge: 300)
+passed Simulator.FleetSimulatorTests.FleetOptions_Parse_RejectsNonsense(name: "--couriers", value: "0")
+passed Domain.LocationRulesTests.Validate_LatitudeOutsideTheRedisRange_IsRejected(lat: 85.060000000000002)
+passed Simulator.FleetSimulatorTests.FleetOptions_Parse_RejectsNonsense(name: "--nonsense", value: "1")
+passed Domain.PartitionPlanTests.Bounds_AreUtcMidnightToMidnight
+passed Domain.QueryRulesTests.ValidateNearby_TheEdgesOfEveryRange_AreAllowed(radius: 50000, limit: 100, maxAge: 1)
+passed Domain.LocationRulesTests.Validate_LatitudeOutsideTheRedisRange_IsRejected(lat: NaN)
+passed Domain.LocationRulesTests.Validate_LatitudeOutsideTheRedisRange_IsRejected(lat: 90)
+passed Domain.PartitionPlanTests.RequiredDays_AreYesterdayTodayAndTheNextThree
+passed Domain.LocationRulesTests.Validate_LatitudeOutsideTheRedisRange_IsRejected(lat: Infinity)
+passed Domain.LocationRulesTests.Validate_LatitudeOutsideTheRedisRange_IsRejected(lat: -85.060000000000002)
+passed Domain.QueryRulesTests.ValidateNearby_OutsideTheRanges_IsRejected(radius: -1, limit: 10, maxAge: 30)
+passed Domain.LocationRulesTests.Validate_LongitudeOutOfRange_IsRejected(lon: 180.09999999999999)
+passed Domain.QueryRulesTests.ValidateNearby_OutsideTheRanges_IsRejected(radius: 1000, limit: 101, maxAge: 30)
+passed Domain.QueryRulesTests.ValidateNearby_OutsideTheRanges_IsRejected(radius: 1000, limit: -1, maxAge: 30)
+passed Domain.LocationRulesTests.Validate_LongitudeOutOfRange_IsRejected(lon: -181)
+passed Simulator.FleetSimulatorTests.FleetOptions_Parse_DecimalsFlagsAndRates
+passed Domain.QueryRulesTests.ValidateNearby_OutsideTheRanges_IsRejected(radius: 1000, limit: 10, maxAge: 301)
+passed Domain.LocationRulesTests.Validate_LongitudeOutOfRange_IsRejected(lon: NaN)
+passed Domain.QueryRulesTests.ValidateNearby_OutsideTheRanges_IsRejected(radius: 1000, limit: 10, maxAge: -1)
+passed Domain.QueryRulesTests.ValidateNearby_OutsideTheRanges_IsRejected(radius: 0, limit: 10, maxAge: 30)
+passed Domain.QueryRulesTests.ValidateNearby_OutsideTheRanges_IsRejected(radius: 50001, limit: 10, maxAge: 30)
+passed Domain.LocationRulesTests.Validate_PointExactlyAtTheMaxAge_IsAccepted_OneSecondOlderIsNot
+passed Domain.PartitionPlanTests.NameFor_AndTryParseDay_RoundTrip
+passed Domain.LocationRulesTests.Validate_BadAccuracy_IsRejected(accuracy: NaN)
+passed Domain.LocationRulesTests.Validate_BadAccuracy_IsRejected(accuracy: -1)
+passed Domain.LocationRulesTests.Validate_NonPositiveSeq_IsRejected(seq: 0)
+passed Domain.LocationRulesTests.Validate_NonPositiveSeq_IsRejected(seq: -5)
+passed Domain.QueryRulesTests.ValidateCourierIds_GoodIds_AreParsedInOrder
+passed Domain.QueryRulesTests.ValidateCourierIds_OneBadId_RejectsTheWholeCall
+passed Domain.PartitionPlanTests.RequiredDays_CoverTheWholeAcceptedWindow_AtAnyMomentOfTheDay
+passed Domain.QueryRulesTests.ValidateNearby_ZeroLimitAndMaxAge_UseTheDefaults
+passed Domain.PartitionPlanTests.IsExpired_OnlyWhenTheWholeDayIsOlderThanTheRetention
+passed Domain.PartitionPlanTests.IsExpired_BoundaryIsInclusive_AtExactlyThirtyDays
+passed Simulator.FleetSimulatorTests.RouteWalker_StaysInsideIstanbul_ForAWholeDayOfSteps
+passed Simulator.FleetSimulatorTests.CourierIdentity_IsStablePerSeedAndIndex_AndDiffersBetweenCouriers
+passed Simulator.FleetSimulatorTests.FleetOptions_Parse_TheCommandOfTheRoadmap
+passed Infrastructure.LocationBatcherTests.ReadBatches_ALonePoint_IsNotHeldLongerThanTheMaxWait
+total: 62
+failed: 0
+succeeded: 62

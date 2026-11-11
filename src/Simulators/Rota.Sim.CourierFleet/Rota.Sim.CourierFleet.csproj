@@ -1,7 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- Pretend couriers: random routes across Istanbul, a position stream per courier. No map, only coordinates. -->
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.Client" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Contracts\Rota.Contracts.Protos\Rota.Contracts.Protos.csproj" />
+  </ItemGroup>
 
 </Project>

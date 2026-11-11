@@ -29,6 +29,9 @@ public static class ServiceDefaultsExtensions
     // Same string as Rota.BuildingBlocks.Messaging.MessagingTelemetry.Name (Web does not reference Messaging).
     private const string MessagingSourceName = "Rota.Messaging";
 
+    // Same string as Rota.Tracking.Api's TrackingTelemetry.MeterName.
+    private const string TrackingMeterName = "Rota.Tracking";
+
     public static TBuilder AddRotaServiceDefaults<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder
     {
@@ -93,6 +96,7 @@ public static class ServiceDefaultsExtensions
             .ConfigureResource(resource => resource.AddService(builder.Environment.ApplicationName))
             .WithMetrics(metrics => metrics
                 .AddMeter(MessagingSourceName)
+                .AddMeter(TrackingMeterName)
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation())
             .WithTracing(tracing => tracing

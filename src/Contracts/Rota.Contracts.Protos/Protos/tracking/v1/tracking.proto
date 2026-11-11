@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+// Tracking gRPC contract (docs/05-contracts.md §2). The package name carries the version:
+// a published version is never edited, a breaking change becomes rota.tracking.v2.
+package rota.tracking.v1;
+
+option csharp_namespace = "Rota.Contracts.Tracking.V1";
+
+import "google/protobuf/timestamp.proto";
+
+// Courier -> Tracking (mobile app, through the gateway). The courier's identity comes from the
+// token, never from a message: otherwise one courier could report positions as another.
+service CourierLocationIngest {
+  rpc StreamLocations (stream LocationPoint) returns (StreamLocationsResult);
+}
+
+// Dispatch / Ops API -> Tracking (internal network).
+service CourierLocationQuery {
+  rpc GetNearbyCouriers (GetNearbyCouriersRequest) returns (GetNearbyCouriersResponse);
+  // Batch read for the Ops API DataLoader (one call for many couriers, not one per courier).
+  rpc GetLastLocations (GetLastLocationsRequest) returns (GetLastLocationsResponse);
+}
+
+message LocationPoint {
+  int64 seq = 1;                               // increasing sequence number kept on the courier's device
+  double lat = 2;
+  double lon = 3;
+  float accuracy_m = 4;
+  google.protobuf.Timestamp recorded_at = 5;   // device clock
+}
+
+message StreamLocationsResult {
+  int64 received = 1;
+  int64 accepted = 2;       // became the current position
+  int64 out_of_order = 3;   // older than the current position: history only
+}
+
+message GetNearbyCouriersRequest {
+  double lat = 1;
+  double lon = 2;
+  int32 radius_m = 3;
+  int32 limit = 4;
+  int32 max_age_seconds = 5;   // a courier whose last position is older than this is not a candidate
+}
+
+message NearbyCourier {
+  string courier_id = 1;
+  int32 distance_m = 2;
+  google.protobuf.Timestamp last_seen_at = 3;
+}
+
+message GetNearbyCouriersResponse {
+  repeated NearbyCourier couriers = 1;
+}
+
+message GetLastLocationsRequest {
+  repeated string courier_ids = 1;
+}
+
+message CourierLocation {
+  string courier_id = 1;
+  double lat = 2;
+  double lon = 3;
+  google.protobuf.Timestamp recorded_at = 4;
+}
+
+message GetLastLocationsResponse {
+  repeated CourierLocation locations = 1;
+}

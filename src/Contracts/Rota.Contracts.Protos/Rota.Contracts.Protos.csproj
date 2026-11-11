@@ -1,3 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- .proto sources and the C# generated from them (server and client stubs). No logic here. -->
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.Core.Api" />
+    <!-- Build-time code generator only; consumers do not get it. -->
+    <PackageReference Include="Grpc.Tools" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\tracking\v1\tracking.proto" GrpcServices="Both" ProtoRoot="Protos" />
+  </ItemGroup>
+
 </Project>

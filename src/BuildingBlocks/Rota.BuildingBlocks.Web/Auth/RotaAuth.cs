@@ -11,6 +11,9 @@ public static class RotaRoles
     public const string Merchant = "merchant";
     public const string Courier = "courier";
     public const string Dispatcher = "dispatcher";
+
+    /// <summary>Another Rota service calling over the internal network (Dispatch -> Tracking); a client-credentials token in F08.</summary>
+    public const string Service = "service";
 }
 
 /// <summary>Claim types; short JWT names, the same ones Keycloak issues (F08).</summary>
@@ -34,6 +37,7 @@ public static class RotaPolicies
     public const string MerchantOnly = nameof(MerchantOnly);
     public const string CourierOnly = nameof(CourierOnly);
     public const string DispatcherOnly = nameof(DispatcherOnly);
+    public const string ServiceOnly = nameof(ServiceOnly);
     public const string MerchantOrDispatcher = nameof(MerchantOrDispatcher);
     public const string AnyActor = nameof(AnyActor);
 }
@@ -62,6 +66,7 @@ public static class RotaAuthExtensions
             .AddPolicy(RotaPolicies.MerchantOnly, p => p.RequireRole(RotaRoles.Merchant))
             .AddPolicy(RotaPolicies.CourierOnly, p => p.RequireRole(RotaRoles.Courier))
             .AddPolicy(RotaPolicies.DispatcherOnly, p => p.RequireRole(RotaRoles.Dispatcher))
+            .AddPolicy(RotaPolicies.ServiceOnly, p => p.RequireRole(RotaRoles.Service))
             .AddPolicy(RotaPolicies.MerchantOrDispatcher, p => p.RequireRole(RotaRoles.Merchant, RotaRoles.Dispatcher))
             .AddPolicy(RotaPolicies.AnyActor, p => p.RequireRole(RotaRoles.Merchant, RotaRoles.Courier, RotaRoles.Dispatcher));
 

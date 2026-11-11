@@ -315,14 +315,16 @@ Rota.Orders.Api/
 | | `TngTech.ArchUnitNET`, `TngTech.ArchUnitNET.xUnitV3` | 0.13.5 | Apache-2.0 | F01 | Mimari test. `netstandard2.0`; xunit.v3 entegrasyonu var. NetArchTest.Rules seçilmedi: son sürümü 1.3.2 (2021-05), bakımı yok |
 | | `Testcontainers.PostgreSql` | 4.16.0 | MIT | F02 | `net8.0`/`net10.0`; imaj `postgres:18.6-alpine` (compose ile aynı) |
 | | `Testcontainers.RabbitMq` | 4.16.0 | MIT | F03 | İmaj `rabbitmq:4.4.0-management-alpine` (compose ile aynı). Varsayılan kullanıcıyı container söyler (`guest` değil); test başına ayrı virtual host |
-| | `Testcontainers.Redis` | — | — | ilk kullanımda | |
+| | `Testcontainers.Redis` | 4.16.0 | MIT | F04 | İmaj `redis:8.10.3-alpine` (compose ile aynı) |
 | GraphQL | `HotChocolate.AspNetCore`, `HotChocolate.Data.EntityFramework` | 16.7.5 | MIT | F00 (önden) | v16 kararlı, `net10.0` hedefi var. 16.8 preview'da. F09'da sürüm yeniden kontrol edilir |
 | EF Core + PostgreSQL | `Npgsql.EntityFrameworkCore.PostgreSQL` | 10.0.3 | PostgreSQL (MIT benzeri) | F02 | `net10.0`; EF Core ≥ 10.0.4 ister |
 | | `Microsoft.EntityFrameworkCore`, `.Relational`, `.Design` | 10.0.15 | MIT | F02 | Npgsql/NamingConventions/Design aynı EF sürümünü çözsün diye sabitlendi; `.Design` yalnız `dotnet ef` için (`PrivateAssets=all`). 11.0.0 yalnız `net11.0` |
 | | `EFCore.NamingConventions` | 10.0.1 | Apache-2.0 | F02 | `snake_case` tablo/kolon adları (04 ile birebir) |
-| Redis | `StackExchange.Redis` | — | — | ilk kullanımda | GEO, Pub/Sub |
+| Redis | `StackExchange.Redis` | 3.4.31 | MIT | F04 | GEO, Lua script (`LuaScript.Prepare`), Pub/Sub. `AbortOnConnectFail=false`: Redis kapalıyken servis açılır, `/health/ready` 503 döner |
 | RabbitMQ | `RabbitMQ.Client` (7.x, tamamen async API) | 7.2.2 | Apache-2.0 OR MPL-2.0 | F03 | `net8.0` hedefi, .NET 10'da çalışır. `BasicPublishAsync` publisher confirm takibiyle (`CreateChannelOptions`) kullanılır. MassTransit kullanılmıyor (ADR-010) |
-| gRPC | `Grpc.AspNetCore`, `Grpc.Net.ClientFactory`, `Grpc.Tools` | — | — | ilk kullanımda | |
+| gRPC | `Grpc.AspNetCore`, `Grpc.Net.Client`, `Grpc.Core.Api`, `Grpc.Tools` | 2.85.0 | Apache-2.0 | F04 | `net10.0` hedefi var (`Grpc.Tools` yalnız derleme aracı, `PrivateAssets=all`). `Grpc.Net.ClientFactory` Dispatch istemcisi yazılınca (F05) eklenir |
+| | `Google.Protobuf` | 3.36.2 | BSD-3-Clause | F04 | `net8.0`/`netstandard2.0` hedefi, .NET 10'da çalışır |
+| | `Npgsql` (doğrudan) | 10.0.3 | PostgreSQL (MIT benzeri) | F04 | Sıcak yolda `COPY` (binary import); EF sağlayıcısının zaten getirdiği sürümle aynı |
 | Gateway | `Yarp.ReverseProxy` | — | — | F08 | gRPC ve WebSocket proxy desteği |
 | Dayanıklılık | `Microsoft.Extensions.Http.Resilience` | — | — | ilk kullanımda | Polly v8 tabanlı; timeout, retry, circuit breaker |
 | Auth | `Microsoft.AspNetCore.Authentication.JwtBearer` | — | — | F08 | |

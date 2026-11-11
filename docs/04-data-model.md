@@ -158,6 +158,10 @@ CREATE UNLOGGED TABLE location_points_staging (LIKE location_points INCLUDING DE
 
 - **Toplu yazma:** `COPY` (Npgsql binary import) → staging tablosu → `INSERT INTO location_points SELECT ... ON CONFLICT DO NOTHING`. `COPY` doğrudan `ON CONFLICT` desteklemediği için staging gerekir; tekrar gelen noktalar böylece sessizce elenir.
 - Partition anahtarı birincil anahtarda bulunmak zorundadır; bu yüzden PK `(courier_id, seq, recorded_at)`.
+- **Kabul penceresi (F04):** `recorded_at` sunucu saatinden en fazla **24 saat eski** ve en fazla **5 dakika ilerde** olabilir; aksi hâlde `INVALID_ARGUMENT`. Bölüm bakım işi dünden itibaren bölüm tuttuğu için pencerenin dışındaki bir nokta bölümsüz kalırdı. Bölümler: dün, bugün ve önümüzdeki 3 gün (UTC günleri).
+- `accuracy_m`: protobuf'ta "0 = verilmedi"; 0 gelirse `NULL` yazılır.
+- **Staging tablosu:** her toplu yazma tek transaction'dır (`COPY` → `INSERT ... ON CONFLICT DO NOTHING` → `DELETE FROM staging`). `TRUNCATE` kullanılmaz: ACCESS EXCLUSIVE kilidiyle birden çok Tracking örneğini birbirine bekletirdi. Bir transaction yalnız kendi commit edilmemiş staging satırlarını görür, commit'te tablo boştur.
+- **Geçmiş en iyi çabadır:** DB 2 yeniden denemeden sonra (200 ms, 1 sn) erişilemezse o toplu yazma düşürülür ve `rota.tracking.history_dropped` sayılır; akışlar ve anlık konum (Redis) durmaz. Süreç çökerse en fazla 500 ms / 1.000 noktalık tampon kaybolur.
 - F11'de EF Core `AddRange` ile `COPY` karşılaştırılıp ölçülecek.
 
 ### Tracking Redis anahtarları
@@ -167,6 +171,9 @@ CREATE UNLOGGED TABLE location_points_staging (LIKE location_points INCLUDING DE
 | `trk:geo:couriers` | GEO (sorted set) | üye = courierId, konum | `GEOSEARCH ... BYRADIUS 5 km ASC COUNT 20 WITHDIST` |
 | `trk:lastseen` | Sorted set | üye = courierId, skor = unix ms | 30 sn'den eskiler GEO sonucundan elenir; temizlik işi 5 dk'dan eskileri GEO'dan siler |
 | `trk:lastseq` | Hash | courierId → son seq | Sırası bozuk noktayı tespit eder (I-8) |
+| `trk:lastrec` | Hash | courierId → `recorded_at` (unix ms, **cihaz saati**) | Anlık konumla **aynı Lua script'inde** yazılır. `GetLastLocations` bunu döner. `trk:lastseen` ise sunucu saatidir: biri "ne zaman kaydedildi", öbürü "hâlâ gönderiyor mu" sorusuna cevap verir; çevrimdışı birikmiş noktalarda dakikalarca farklı olabilir |
+
+> **Atomik yazma (F04):** Anlık konum, `lastseen`, `lastseq`, `lastrec` ve Pub/Sub yayını **tek bir Lua script'inde** yazılır: "seq mevcuttan büyük mü?" kontrolü ile yazma arasına başka bir akış giremez (I-8). Redis Cluster'da bu script'in anahtarlarının aynı slot'ta olması gerekir (tek düğümde sorun yok).
 
 | Pub/Sub kanalı | Yayınlayan | Abone | İçerik |
 |---|---|---|---|

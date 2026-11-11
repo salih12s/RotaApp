@@ -1,0 +1,24 @@
+$ grep -rnE "Channel\.CreateUnbounded|new List<.*>\(\).*Add" src/Services/Tracking --include=*.cs
+
+$ grep -rnE "SaveChanges|\.AddRange\(" src/Services/Tracking --include=*.cs
+src/Services/Tracking/Rota.Tracking.Api/Features/Query/CourierLocationQueryService.cs:31:        response.Couriers.AddRange(found.Select(c => new NearbyCourier
+src/Services/Tracking/Rota.Tracking.Api/Features/Query/CourierLocationQueryService.cs:53:        response.Locations.AddRange(found.Select(l => new CourierLocation
+src/Services/Tracking/Rota.Tracking.Api/Infrastructure/LocationHistoryWriter.cs:27:/// Why not EF <c>SaveChanges</c> per point: with hundreds of couriers sending every 3 s, that is hundreds of
+
+$ grep -rnE "courier_id|CourierId" src/Contracts/Rota.Contracts.Protos/Protos/tracking/v1/tracking.proto
+47:  string courier_id = 1;
+57:  repeated string courier_ids = 1;
+61:  string courier_id = 1;
+
+$ grep -rnE "GetCourierId\(" src/Services/Tracking --include=*.cs
+src/Services/Tracking/Rota.Tracking.Api/Features/Ingest/CourierLocationIngestService.cs:30:        var courierId = context.GetHttpContext().User.GetCourierId()
+
+$ grep -rnE "DateTime(Offset)?\.(Now|UtcNow)" src/ tests/ --include=*.cs
+tests/Rota.TestKit/TestClock.cs:5:/// <summary>Fixed test time. Tests never read the real clock (no DateTime.Now/UtcNow).</summary>
+
+$ grep -rnE "\.ToLower\(\)|\.ToUpper\(\)" src/ tests/ --include=*.cs
+
+$ grep -rln "MediatR\|AutoMapper\|MassTransit\|FluentAssertions" Directory.Packages.props src tests
+
+$ grep -rnE "Task\.Delay\([^)]*(1000|2000)\)" tests/Rota.Tracking.IntegrationTests tests/Rota.Tracking.UnitTests --include=*.cs
+

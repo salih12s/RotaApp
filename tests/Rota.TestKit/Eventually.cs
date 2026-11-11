@@ -1,4 +1,4 @@
-namespace Rota.Orders.IntegrationTests.Messaging;
+namespace Rota.TestKit;
 
 /// <summary>
 /// "Wait until the condition holds, at most N seconds." Replaces fixed sleeps: it returns as soon as

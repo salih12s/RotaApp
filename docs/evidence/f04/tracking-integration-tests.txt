@@ -1,0 +1,62 @@
+passed Maintenance.PartitionMaintenanceTests.Run_KeepsAPartitionWhoseDayIsNotYetThirtyDaysOld (1s 054ms)
+passed Maintenance.PartitionMaintenanceTests.ServiceStartup_CreatesThePartitions_BeforeAnyTraffic (1s 133ms)
+passed Ingest.IngestAccessTests.StreamLocations_AsCourier_ReceivesEveryPoint (2s 645ms)
+passed Ingest.CurrentPositionTests.Stream_NewerPoints_BecomeTheCurrentPosition (2s 702ms)
+passed Maintenance.PartitionMaintenanceTests.Run_OnAnEmptyDatabase_CreatesYesterdayTodayAndTheNextThreeDays
+passed Ingest.CurrentPositionTests.Stream_InvalidPoint_EndsTheCallWithInvalidArgument(lat: 40, lon: 181, seq: 1, hasRecordedAt: True)
+passed Query.LastLocationsTests.LastLocations_ReturnsTheCurrentPosition_WithTheDeviceTime_NotTheServerTime (2s 763ms)
+passed Ingest.CurrentPositionTests.Stream_InvalidPoint_EndsTheCallWithInvalidArgument(lat: 91, lon: 29, seq: 1, hasRecordedAt: True)
+passed Ingest.CurrentPositionTests.Stream_InvalidPoint_EndsTheCallWithInvalidArgument(lat: 40, lon: 29, seq: 1, hasRecordedAt: False)
+passed Ingest.CurrentPositionTests.Stream_InvalidPoint_EndsTheCallWithInvalidArgument(lat: 40, lon: 29, seq: 0, hasRecordedAt: True)
+passed Ingest.CurrentPositionTests.Stream_InvalidPoint_EndsTheCallWithInvalidArgument(lat: 86, lon: 29, seq: 1, hasRecordedAt: True)
+passed Ingest.CurrentPositionTests.Stream_InvalidPoint_EndsTheCallWithInvalidArgument(lat: NaN, lon: 29, seq: 1, hasRecordedAt: True)
+passed Query.LastLocationsTests.LastLocations_ByACourier_IsPermissionDenied
+passed Ingest.IngestAccessTests.StreamLocations_AsAnotherRole_IsPermissionDenied(devUser: "service:dispatch")
+passed Ingest.IngestAccessTests.StreamLocations_AsAnotherRole_IsPermissionDenied(devUser: "merchant:merchant-1")
+passed Ingest.IngestAccessTests.StreamLocations_AsAnotherRole_IsPermissionDenied(devUser: "dispatcher:dispatcher-1")
+passed Query.LastLocationsTests.LastLocations_MoreThanAThousandIds_IsInvalidArgument
+passed Ingest.IngestAccessTests.StreamLocations_WithoutIdentity_IsUnauthenticated
+passed Query.LastLocationsTests.LastLocations_ABadId_IsInvalidArgument
+passed Ingest.CurrentPositionTests.Stream_AcceptedPoints_ArePublishedOnTheCourierChannel_OldOnesAreNot
+passed Query.LastLocationsTests.LastLocations_SkipsCouriersNobodyHasHeardFrom_AndAnswersForTheRest
+passed Query.LastLocationsTests.LastLocations_AnOlderPointThatArrivedLate_DoesNotChangeTheAnswer
+passed Query.LastLocationsTests.LastLocations_NoIds_ReturnsAnEmptyList
+passed Maintenance.PartitionMaintenanceTests.Run_TwoInstancesAtTheSameTime_DoNotCollide
+passed Query.NearbyCouriersTests.Nearby_MaxAgeSeconds_ChangesWhatCountsAsFresh (2s 917ms)
+passed Query.NearbyCouriersTests.Nearby_ReportsWhenEachCourierWasLastSeen_OnTheServerClock
+passed Query.NearbyCouriersTests.Nearby_WithoutIdentity_IsUnauthenticated
+passed Ingest.HistoryTests.Accuracy_ZeroMeansNotReported_AndIsStoredAsNull (3s 066ms)
+passed Query.NearbyCouriersTests.Nearby_NobodyInRange_ReturnsAnEmptyList
+passed Ingest.HistoryTests.Point_OutsideTheAcceptedWindow_IsInvalidArgument(hoursFromNow: 1, reason: "future")
+passed Ingest.HistoryTests.Point_OutsideTheAcceptedWindow_IsInvalidArgument(hoursFromNow: -25, reason: "older than")
+passed Maintenance.PartitionMaintenanceTests.Run_AMonthLater_CreatesNewPartitions_AndDropsThoseOlderThanThirtyDays_WithTheirData
+passed Query.NearbyCouriersTests.Nearby_ACourierWhoStoppedSending_DropsOut_AtExactlyThirtySeconds_NotBefore
+passed Query.NearbyCouriersTests.Nearby_InvalidRequest_IsInvalidArgument(lat: 40, lon: 29, radius: 1000, limit: -1, maxAge: 30)
+passed Query.NearbyCouriersTests.Nearby_InvalidRequest_IsInvalidArgument(lat: 40, lon: 29, radius: 1000, limit: 10, maxAge: 301)
+passed Query.NearbyCouriersTests.Nearby_InvalidRequest_IsInvalidArgument(lat: 40, lon: 29, radius: 50001, limit: 10, maxAge: 30)
+passed Query.NearbyCouriersTests.Nearby_InvalidRequest_IsInvalidArgument(lat: 40, lon: 29, radius: 1000, limit: 10, maxAge: -5)
+passed Query.NearbyCouriersTests.Nearby_InvalidRequest_IsInvalidArgument(lat: 91, lon: 29, radius: 1000, limit: 10, maxAge: 30)
+passed Query.NearbyCouriersTests.Nearby_InvalidRequest_IsInvalidArgument(lat: 40, lon: 29, radius: 0, limit: 10, maxAge: 30)
+passed Query.NearbyCouriersTests.Nearby_InvalidRequest_IsInvalidArgument(lat: 40, lon: 29, radius: 1000, limit: 101, maxAge: 30)
+passed Query.NearbyCouriersTests.Nearby_ReturnsCouriersInsideTheRadius_NearestFirst_WithTheirDistances
+passed Query.NearbyCouriersTests.Nearby_RespectsTheLimit_AndKeepsTheNearest
+passed Query.NearbyCouriersTests.Nearby_StaleCouriersThatAreCloser_DoNotUseUpTheLimit
+passed Maintenance.PartitionMaintenanceTests.Run_Twice_ChangesNothingTheSecondTime
+passed Query.NearbyCouriersTests.Nearby_ByAnyoneButAService_IsPermissionDenied(devUser: "merchant:merchant-1")
+passed Query.NearbyCouriersTests.Nearby_ByAnyoneButAService_IsPermissionDenied(devUser: "dispatcher:dispatcher-1")
+passed Query.NearbyCouriersTests.Nearby_ByAnyoneButAService_IsPermissionDenied(devUser: "courier:00000000-0000-0000-0000-000000000001")
+passed HealthTests.Ready_WhenRedisIsUnreachable_Returns503_ButLiveStaysHealthy (4s 234ms)
+passed HealthTests.Ready_WhenRedisAnswers_Returns200
+passed Ingest.HistoryTests.WhenTheDatabaseIsDown_TheCurrentPositionIsStillUpdated (2s 314ms)
+passed Ingest.HistoryTests.OutOfOrderPoint_IsWrittenToHistory_ButDoesNotMoveTheCurrentPosition
+passed Ingest.HistoryTests.Point_RecordedWithinTheLastDay_LandsInYesterdaysPartition
+passed Ingest.CurrentPositionTests.Stream_TwoConcurrentStreamsOfOneCourier_NeverMoveTheCurrentPositionBackwards (5s 349ms)
+passed Ingest.CurrentPositionTests.Stream_ValidPointsBeforeAnInvalidOne_AreKept
+passed Ingest.CurrentPositionTests.Stream_PositionOfOneCourier_NeverTouchesAnother
+passed Ingest.CurrentPositionTests.Stream_OutOfOrderPoint_DoesNotRollBackTheCurrentPosition
+passed Ingest.CurrentPositionTests.Stream_SameSeqTwice_CountsTheRepeatAsNotNewer
+passed Ingest.HistoryTests.ManyPoints_MoreThanOneBatch_AreAllWritten (5s 038ms)
+passed Ingest.HistoryTests.SamePointSentTwice_IsOneRowInHistory
+total: 59
+failed: 0
+succeeded: 59

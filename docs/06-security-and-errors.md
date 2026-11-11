@@ -17,7 +17,7 @@
 
 Keycloak F08'de gelir. Ama yetki kuralları (kaynak sahipliği) ilk günden yazılmalı ve test edilmeli. Bu yüzden (ADR-006):
 - Uçlar F02'den itibaren gerçek politikalarla korunur (`RequireRole`, sahiplik kontrolü).
-- **Yalnızca `Development` ortamında ve testlerde** bir `DevAuth` şeması claim'leri istek başlığından okur (`X-Dev-User: courier:<guid>`).
+- **Yalnızca `Development` ortamında ve testlerde** bir `DevAuth` şeması claim'leri istek başlığından okur (`X-Dev-User: courier:<guid>`; iç servis çağrıları için `X-Dev-User: service:<ad>`, gRPC'de metadata anahtarı `x-dev-user`). `service` rolü F04'te eklendi (`ServiceOnly` politikası): F08'de Keycloak client-credentials token'ının rolüne dönüşecek.
 - F08'de `DevAuth` yalnız test projesinde kalır; uygulamada `Development` dışında kaydedilirse uygulama **başlamaz** (başlangıç kontrolü).
 
 ## 2. Yetki politikaları

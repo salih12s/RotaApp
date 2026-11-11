@@ -2,6 +2,7 @@ extern alias DispatchApi;
 
 using Microsoft.EntityFrameworkCore;
 using Rota.Orders.Api.Domain;
+using Rota.TestKit;
 
 namespace Rota.Orders.IntegrationTests.Messaging;
 

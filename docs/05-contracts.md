@@ -148,6 +148,15 @@ message OfferWithdrawn { string offer_id = 1; string reason = 2; }
 message Heartbeat { google.protobuf.Timestamp server_time = 1; }
 ```
 
+### Tracking ayrıntıları (F04)
+
+- **`StreamLocations`:** her nokta doğrulanır (`lat` ±85,05112878 aralığı: Redis GEO bunun ötesini reddeder; `lon` ±180; `seq` ≥ 1; `recorded_at` zorunlu ve kabul penceresi içinde, bkz. 04). Geçersiz nokta çağrıyı `INVALID_ARGUMENT` ile **sonlandırır**; öncesindeki noktalar kalır.
+- **Sonuç sayıları:** `received` = okunan, `accepted` = anlık konum olan, `out_of_order` = mevcuttan **daha yeni olmayan** (eski ya da aynı `seq`). `out_of_order` noktalar da geçmişe yazılır; tekrarlar `ON CONFLICT DO NOTHING` ile tek satır olur.
+- **`GetNearbyCouriers`:** `radius_m` zorunlu (1–50.000); `limit` 0 = 20, en çok 100; `max_age_seconds` 0 = 30, en çok 300. Arama ve tazelik filtresi tek script'tedir ve **yeterli taze kurye bulunana kadar pencereyi genişletir**: bayat ama yakın kuryeler `limit` kontenjanını doldurup biraz uzaktaki taze kuryeleri gizlemez. Sonuçlar mesafeye göre artan sıradadır.
+- **`GetLastLocations`:** en çok 1.000 kimlik; geçersiz GUID tüm çağrıyı reddeder; bilinmeyen kurye sonuçta yer almaz. `recorded_at` **cihaz saatidir**.
+- **Yetki:** `StreamLocations` yalnız `courier` rolü (kimlik token'dan, mesajdan değil); `GetNearbyCouriers` ve `GetLastLocations` yalnız `service` rolü (Dispatch, Ops API): bir kurye diğer kuryelerin yerini soramaz. Rol dışı → `PERMISSION_DENIED`, kimlik yok → `UNAUTHENTICATED`.
+- **Portlar (yerel):** HTTP/1.1 `5103` (health), gRPC HTTP/2 `5203` (TLS'siz yerelde ayrı port).
+
 ### gRPC durum kodları
 
 | Durum | Kod |

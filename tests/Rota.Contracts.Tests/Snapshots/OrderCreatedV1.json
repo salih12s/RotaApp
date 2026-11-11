@@ -1,0 +1,25 @@
+{
+  "eventId": "01933c5e-0000-7000-8000-0000000000ff",
+  "type": "OrderCreated.v1",
+  "occurredAt": "2026-11-11T10:31:05+00:00",
+  "aggregateId": "01933c5e-0000-7000-8000-000000000001",
+  "aggregateVersion": 1,
+  "data": {
+    "orderId": "01933c5e-0000-7000-8000-000000000001",
+    "merchantId": "merchant-1",
+    "merchantOrderRef": "PZ-2026-000123",
+    "pickup": {
+      "lat": 40.9903,
+      "lon": 29.029,
+      "address": "Kad\u0131k\u00F6y \u015Eube, Moda Cd. 10"
+    },
+    "dropoff": {
+      "lat": 40.985,
+      "lon": 29.04,
+      "address": "Cafera\u011Fa Mh. Moda"
+    },
+    "distanceMeters": 1120,
+    "createdAt": "2026-11-11T10:31:05+00:00",
+    "orderVersion": 1
+  }
+}

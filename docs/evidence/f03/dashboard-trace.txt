@@ -1,0 +1,14 @@
+$ GET http://localhost:18888/api/telemetry/traces  (Aspire Dashboard telemetri API)
+# Round-trip testi OTLP export açıkken koşturuldu; iz dashboard'a ulaştı.
+traceId: 00827ea17f36b94dd830c9133eb08e4c  (tek iz, 6 span)
+
+Rota.Orders.Api      | Microsoft.AspNetCore | POST /api/v1/orders/
+Rota.Orders.Api      | Rota.Messaging       | orders.order-created.v1 publish
+Rota.Orders.Api      | Rota.Messaging       | q.dispatch.order-created process
+Rota.Orders.Api      | Rota.Messaging       | dispatch.dispatch-started.v1 publish
+Rota.Orders.Api      | Rota.Messaging       | q.orders.dispatch-started process
+Rota.Orders.Api      | Rota.Messaging       | orders.order-status-changed.v1 publish
+
+Not: Hepsi 'Rota.Orders.Api' altında görünür çünkü test iki servisi AYNI süreçte çalıştırır;
+iki OpenTelemetry sağlayıcısı aynı statik kaynağı dinler. Gerçek dağıtımda (iki ayrı süreç) her
+servis kendi adıyla görünür. Bu doğrulanmadı: servisler yerelde başlatılamıyor (F02 raporu).

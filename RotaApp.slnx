@@ -33,7 +33,9 @@
     <Project Path="src/Simulators/Rota.Sim.Merchant/Rota.Sim.Merchant.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Rota.Contracts.Tests/Rota.Contracts.Tests.csproj" />
     <Project Path="tests/Rota.Dispatch.UnitTests/Rota.Dispatch.UnitTests.csproj" />
+    <Project Path="tests/Rota.Orders.IntegrationTests/Rota.Orders.IntegrationTests.csproj" />
     <Project Path="tests/Rota.Orders.UnitTests/Rota.Orders.UnitTests.csproj" />
     <Project Path="tests/Rota.TestKit/Rota.TestKit.csproj" />
   </Folder>

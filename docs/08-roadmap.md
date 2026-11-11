@@ -6,9 +6,9 @@
 |---|---|---|---|
 | F00 | İskelet, altyapı ve CI | M | ✅ PASS |
 | F01 | Domain çekirdeği | M | ✅ PASS |
-| F02 | Orders servisi | L | ⏭️ Sıradaki |
-| F03 | Güvenilir mesajlaşma (Outbox/Inbox) | L | Bekliyor |
-| F04 | Tracking: konum akışı | L | Bekliyor |
+| F02 | Orders servisi | L | ✅ PASS |
+| F03 | Güvenilir mesajlaşma (Outbox/Inbox) | L | ✅ PASS |
+| F04 | Tracking: konum akışı | L | ⏭️ Sıradaki |
 | F05 | Dispatch: otomatik atama | XL | Bekliyor |
 | F06 | Teslimat akışı ve iptal kuralları | M | Bekliyor |
 | F07 | Notifications: güvenilir webhook | M | Bekliyor |
@@ -140,14 +140,16 @@ dotnet test tests/Rota.Dispatch.UnitTests
 **Öğrenilecek kavramlar:** EF Core Fluent API, migration, `xmin` ile optimistic concurrency, idempotency anahtarı, unique index'in eşzamanlı insert'te bekletmesi, cursor pagination, ProblemDetails, .NET 10 Minimal API doğrulaması, Testcontainers, `WebApplicationFactory`, ES256 JWT + JWKS.
 
 **Yapılacaklar**
-- [ ] `OrdersDbContext`, konfigürasyonlar, ilk migration ([04 Orders](04-data-model.md))
-- [ ] `Rota.BuildingBlocks.Messaging`: `outbox_messages` / `inbox_messages` eşlemeleri ve outbox'a yazma (relay F03'te)
-- [ ] `Rota.BuildingBlocks.Web`: `DevAuth` şeması (yalnız Development/test), politikalar (`MerchantOnly`, `DispatcherOnly`), hata kataloğu → ProblemDetails eşlemesi, global `IExceptionHandler`
-- [ ] Uçlar: `POST /orders`, `GET /orders/{id}`, `GET /orders`, `POST /orders/{id}/cancel` ([05](05-contracts.md))
-- [ ] İdempotency: gövde hash'i; anahtar + sipariş + outbox **tek transaction**; eşzamanlı aynı anahtar → unique ihlali → kayıtlı yanıtı oku ve döndür; farklı gövde → 409
-- [ ] Takip token'ı üretimi (ES256) ve `/.well-known/tracking-jwks`
-- [ ] `Rota.Orders.Api.http` örnek istekleri
-- [ ] `Rota.TestKit`: PostgreSQL container fixture'ı, `DevAuth` başlık yardımcıları
+- [x] `OrdersDbContext`, konfigürasyonlar, ilk migration ([04 Orders](04-data-model.md))
+- [x] `Rota.BuildingBlocks.Messaging`: `outbox_messages` / `inbox_messages` eşlemeleri ve outbox'a yazma (relay F03'te)
+- [x] `Rota.BuildingBlocks.Web`: `DevAuth` şeması (yalnız Development/test), politikalar (`MerchantOnly`, `DispatcherOnly`), hata kataloğu → ProblemDetails eşlemesi, global `IExceptionHandler`
+- [x] Uçlar: `POST /orders`, `GET /orders/{id}`, `GET /orders`, `POST /orders/{id}/cancel` ([05](05-contracts.md))
+- [x] İdempotency: gövde hash'i; anahtar + sipariş + outbox **tek transaction**; eşzamanlı aynı anahtar → unique ihlali → kayıtlı yanıtı oku ve döndür; farklı gövde → 409
+- [x] Takip token'ı üretimi (ES256) ve `/.well-known/tracking-jwks`
+- [x] `Rota.Orders.Api.http` örnek istekleri
+- [x] `Rota.TestKit`: PostgreSQL container fixture'ı, `DevAuth` başlık yardımcıları
+
+> **F02 kararları (Salih onayı, 2026-11-11):** (1) Saklanan idempotency yanıtındaki `deliveryCode` ve `trackingUrl` AES-GCM ile şifreli (AAD = sipariş id); tekrar gelen istekte çözülüp aynı gövde döner. (2) Aynı `merchantOrderRef` + farklı anahtar → 409 `duplicate-merchant-order-ref` (06 kataloğuna eklendi). (3) `Order`'a `MerchantOrderRef`, `PickupLocation`/`DropoffLocation` (`OrderLocation`: nokta + adres) ve `Customer` eklendi. (4) Gövde hash'i ham bayttan değil, doğrulanmış isteğin standart JSON'undan (boşluk/alan sırası farkı 409 üretmez). (5) Branch `faz/f01-domain` üzerinden (lokalde `main` yok). Testcontainers paylaşımı assembly fixture ile (07 §3 güncellendi). Takip token'ı süresi belgede yoktu: varsayılan 24 saat, `Orders:TrackingTokenLifetime` ile ayarlanır. İptal de `OrderStatusChanged.v1` olayını outbox'a yazar (relay F03'te). Kanıt: `docs/evidence/f02/`.
 
 **Kapsam dışı:** Kurye uçları (F06), olay yayınlama (F03).
 
@@ -180,14 +182,16 @@ dotnet ef migrations list --project src/Services/Orders/Rota.Orders.Api
 **Öğrenilecek kavramlar:** Transactional outbox, inbox/deduplication, publisher confirm, ACK/NACK, prefetch, quorum queue, retry kuyruğu (TTL + dead-letter), DLQ, `traceparent` taşıma, olay zarfı, contract snapshot testi.
 
 **Yapılacaklar**
-- [ ] RabbitMQ topolojisi kodla tanımlanır (exchange, tüketici kuyrukları, retry ve `.dlq` kuyrukları)
-- [ ] Outbox relay (`BackgroundService`): `SKIP LOCKED` ile toplu alma, publisher confirm, `processed_at`, hata sayacı, 7 günlük temizlik
-- [ ] Tüketici altyapısı: inbox kaydı ile iş değişikliği **aynı transaction**; commit sonrası ACK; hata → retry kuyruğu → 3 denemeden sonra DLQ
-- [ ] `Rota.Contracts.Events`: [05 §3](05-contracts.md)'teki olay kayıtları (record'lar)
-- [ ] `Rota.Contracts.Tests`: her olayın JSON snapshot'ı
-- [ ] Dispatch: `OrderCreated` tüketicisi → `dispatch_jobs` satırı (`Searching`) + `DispatchStarted.v1`
-- [ ] Orders: `DispatchStarted` tüketicisi → `Created → Dispatching` + `OrderStatusChanged.v1`
-- [ ] Trace bağlamı: publish sırasında `traceparent` başlığı, tüketimde devam
+- [x] RabbitMQ topolojisi kodla tanımlanır (exchange, tüketici kuyrukları, retry ve `.dlq` kuyrukları)
+- [x] Outbox relay (`BackgroundService`): `SKIP LOCKED` ile toplu alma, publisher confirm, `processed_at`, hata sayacı, 7 günlük temizlik
+- [x] Tüketici altyapısı: inbox kaydı ile iş değişikliği **aynı transaction**; commit sonrası ACK; hata → retry kuyruğu → 3 denemeden sonra DLQ
+- [x] `Rota.Contracts.Events`: [05 §3](05-contracts.md)'teki olay kayıtları (record'lar)
+- [x] `Rota.Contracts.Tests`: her olayın JSON snapshot'ı
+- [x] Dispatch: `OrderCreated` tüketicisi → `dispatch_jobs` satırı (`Searching`) + `DispatchStarted.v1`
+- [x] Orders: `DispatchStarted` tüketicisi → `Created → Dispatching` + `OrderStatusChanged.v1`
+- [x] Trace bağlamı: publish sırasında `traceparent` başlığı, tüketimde devam
+
+> **F03 kararları (Salih onayı, 2026-11-11):** (1) "3 deneme" = ilk çalıştırma + **3 yeniden deneme** (5 sn / 30 sn / 2 dk, kuyruk düzeyinde TTL; mesaj başına TTL baştaki mesajın arkasında bekler). (2) Dispatch'in şemasında yalnız bu fazın tabloları var (`dispatch_jobs`, outbox, inbox); teklif ve kurye tabloları F05'te. (3) Kuyrukları tüketici tanımlar; hiçbir kuyruğa uymayan olay alternate exchange ile `q.rota.unrouted`'a park edilir (kaybolmaz ama sonradan otomatik teslim edilmez, bkz. 05 §3 "Bilinen sınır"). (4) `Messaging:Enabled` ayarı: testler ve aracılar broker'sız servis çalıştırabilsin; çalışma anında okunur. (5) Doğrulama komutundaki `--filter Category=Messaging` MTP'de `--filter-trait "Category=Messaging"` olur. Kanıt: `docs/evidence/f03/`.
 
 **Kapsam dışı:** Atama mantığı (F05).
 
@@ -202,7 +206,7 @@ dotnet ef migrations list --project src/Services/Orders/Rota.Orders.Api
 
 **Doğrulama**
 ```bash
-dotnet test tests/Rota.Orders.IntegrationTests --filter Category=Messaging
+dotnet test tests/Rota.Orders.IntegrationTests --filter-trait "Category=Messaging"
 ```
 ```bash
 dotnet test tests/Rota.Contracts.Tests

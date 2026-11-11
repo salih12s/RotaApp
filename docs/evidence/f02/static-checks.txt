@@ -1,0 +1,19 @@
+$ grep -rnE "DateTime(Offset)?\.(Now|UtcNow)|TimeProvider\.System|now\(\)" src/ tests/ --include=*.cs
+src/BuildingBlocks/Rota.BuildingBlocks.Web/ServiceDefaultsExtensions.cs:52:        builder.Services.TryAddSingleton(TimeProvider.System);
+tests/Rota.TestKit/Orders/OrderBuilder.cs:96:        Result Dispatch(Order o, string _) => o.MarkDispatching(OrderActor.System, now());
+tests/Rota.TestKit/Orders/OrderBuilder.cs:97:        Result Unassign(Order o, string _) => o.MarkUnassigned(OrderActor.System, now());
+tests/Rota.TestKit/Orders/OrderBuilder.cs:98:        Result Assign(Order o, string _) => o.Assign(_courierId, OrderActor.System, now());
+tests/Rota.TestKit/Orders/OrderBuilder.cs:99:        Result PickUp(Order o, string _) => o.PickUp(courier, now());
+tests/Rota.TestKit/Orders/OrderBuilder.cs:100:        Result Deliver(Order o, string c) => o.Deliver(c, OrderTestData.Hasher, courier, now());
+tests/Rota.TestKit/Orders/OrderBuilder.cs:101:        Result Fail(Order o, string _) => o.FailDelivery(courier, "customer absent", now());
+tests/Rota.TestKit/Orders/OrderBuilder.cs:102:        Result Return(Order o, string _) => o.MarkReturned(courier, now());
+tests/Rota.TestKit/Orders/OrderBuilder.cs:103:        Result Cancel(Order o, string _) => o.Cancel(OrderActor.Merchant(_merchantId), "test", now());
+tests/Rota.TestKit/TestClock.cs:5:/// <summary>Fixed test time. Tests never read the real clock (no DateTime.Now/UtcNow).</summary>
+
+$ grep -rnE "\.ToLower\(\)|\.ToUpper\(\)" src/ tests/ --include=*.cs
+
+$ grep -rnE "Skip\(|OFFSET" src/Services/Orders --include=*.cs
+src/Services/Orders/Rota.Orders.Api/Features/ListOrders/ListOrdersEndpoint.cs:17:/// seen; the next page is "rows strictly before it". Unlike OFFSET, an order created meanwhile
+
+$ grep -rn "MediatR\|AutoMapper\|MassTransit\|FluentAssertions" Directory.Packages.props src tests --include=*.cs* -l
+

@@ -87,6 +87,7 @@ Gateway 2 instance çalıştığında sınırın instance başına değil **topl
 | `invalid-order-transition` | 409 | Durum makinesi geçişe izin vermiyor; `currentStatus` eklenir |
 | `invalid-courier-transition` | 409 | Kurye durum makinesi geçişe izin vermiyor (ör. çevrimdışıyken vardiya kapatma) veya teklif/sipariş kuryenin mevcut işi değil; `currentState` eklenir. `courier-busy` ve `courier-not-available` daha özel olduğu için önce onlar kullanılır |
 | `idempotency-key-reused` | 409 | Aynı anahtar, farklı gövde |
+| `duplicate-merchant-order-ref` | 409 | Aynı işletmede aynı `merchantOrderRef` başka bir `Idempotency-Key` ile tekrar gönderildi |
 | `concurrency-conflict` | 409 | Aynı kayda eşzamanlı değişiklik |
 | `offer-not-pending` | 409 | Teklif süresi dolmuş / reddedilmiş / iptal |
 | `courier-busy` | 409 | Teslimattayken vardiya kapatma |

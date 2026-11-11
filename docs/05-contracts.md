@@ -15,7 +15,7 @@ Genel kurallar:
 
 | Uç | Rol | Başarı | Hatalar |
 |---|---|---|---|
-| `POST /api/v1/orders` (başlık `Idempotency-Key` zorunlu) | merchant | 201 | 400 doğrulama / eksik anahtar · 409 `idempotency-key-reused` · 422 `out-of-service-area` · 429 |
+| `POST /api/v1/orders` (başlık `Idempotency-Key` zorunlu) | merchant | 201 | 400 doğrulama / eksik anahtar · 409 `idempotency-key-reused` · 409 `duplicate-merchant-order-ref` · 422 `out-of-service-area` · 429 |
 | `GET /api/v1/orders/{id}` | sahibi merchant · dispatcher · atanmış kurye | 200 | 404 |
 | `GET /api/v1/orders?status=&limit=&after=` | merchant (kendi) · dispatcher (hepsi) | 200 | 400 |
 | `POST /api/v1/orders/{id}/cancel` | sahibi merchant · dispatcher | 200 | 404 · 409 `invalid-order-transition` |
@@ -50,6 +50,12 @@ Genel kurallar:
 ```
 
 > `deliveryCode` yalnızca bu yanıtta döner (DB'de hash'i var). İşletme kodu müşteriye kendi kanalından (SMS vb.) iletir.
+>
+- `GET /api/v1/orders/{id}` ve `cancel` yanıtı: `{ id, merchantOrderRef, status, pickup{lat,lon,address}, dropoff{...}, customer{name,phone}, distanceMeters, assignedCourierId, deliveryCodeLocked, orderVersion, createdAt, updatedAt }`. Teslim kodu ve hash'i hiçbir okuma yanıtında yoktur.
+- `GET /api/v1/orders` yanıtı: `{ items: [...], nextCursor }`, en yeni önce. `limit` 1–100 (varsayılan 20), `after` = bir önceki sayfanın `nextCursor`'ı (opak), `status` = `OrderStatus` adı (büyük/küçük harf duyarsız). Geçersiz değer → 400 `validation-failed` (`errors` içinde parametre adı).
+- `POST /api/v1/orders/{id}/cancel` gövdesi isteğe bağlı: `{ "reason": "..." }` (≤ 300). Eşzamanlı değişiklik → 409 `concurrency-conflict`. Zaten iptal edilmiş sipariş → 409 `invalid-order-transition` (`currentStatus: Cancelled`); istemci bunu "iptal zaten gerçekleşti" diye yorumlayabilir.
+
+> Aynı `Idempotency-Key` ile tekrar gelen istek aynı gövdeyi alır; bunun için yanıt `idempotency_keys.response_body`'de saklanır. İçindeki sırlar (`deliveryCode`, `trackingUrl`) orada **AES-GCM ile şifrelidir** (sunucu anahtarı, ek doğrulama verisi = sipariş id'si); düz metin kod DB'ye hiç yazılmaz (F02 kararı).
 
 ### Dispatch
 
@@ -163,7 +169,11 @@ message Heartbeat { google.protobuf.Timestamp server_time = 1; }
 - Exchange: `rota.events` (topic, durable). Routing key: `<servis>.<olay-adı>.v<sürüm>`.
 - Kuyruklar quorum, tüketici başına bir kuyruk; mesajlar kalıcı (persistent); publisher confirm açık.
 - Başlıklar: `message-id` (= eventId), `type`, `traceparent`, `content-type: application/json`.
-- Tüketici hatası → 3 deneme (artan gecikmeli retry kuyruğu, TTL + dead-letter) → `<kuyruk>.dlq`.
+- Tüketici hatası → 3 yeniden deneme (ilk çalıştırma + 3 = en çok 4 handler çalışması). Bekleme kuyrukları `<kuyruk>.retry.1/2/3` (kuyruk düzeyinde TTL: 5 sn, 30 sn, 2 dk; süre dolunca mesaj dead-letter ile asıl kuyruğa döner) → son denemeden sonra `<kuyruk>.dlq`. Tüm kuyruklar quorum.
+- Deneme sayısı `x-attempt` başlığında (ilk teslimde yok = 1). DLQ'daki mesajda ayrıca `x-error` (kesilmiş hata metni) ve `x-source-queue` bulunur. Bozuk JSON / yanlış `type` yeniden denenmez, doğrudan DLQ'ya gider.
+- Sıra: tüketici önce transaction açar, `inbox_messages`'a (eventId, tüketici) yazar, iş değişikliğini yapar, **commit eder, sonra ACK eder**. Inbox PK çakışması = mesaj daha önce işlendi → iş yapılmaz, ACK edilir. `autoAck` kullanılmaz.
+- Yayın tarafı en-az-bir-kez (at-least-once): relay, satırı yalnızca broker publisher confirm verdikten sonra `processed_at` ile işaretler; confirm ile commit arasında çökerse olay tekrar yayınlanır ve tüketici tarafındaki inbox mükerreri yutar. Birden çok relay örneğinde sıra garantisi yoktur; tüketiciler `aggregateVersion` ile eskiyi eler.
+- Kuyruğu **tüketici** tanımlar (başlangıçta, idempotent declare). `rota.events` exchange'inin alternate exchange'i `rota.unrouted` → `q.rota.unrouted` (7 gün / 100 bin mesaj sınırlı park kuyruğu): hiçbir kuyruğa uymayan olay kaybolmaz, burada beklemeye alınır.
 
 ### Zarf (envelope)
 
@@ -177,6 +187,8 @@ message Heartbeat { google.protobuf.Timestamp server_time = 1; }
   "data": { }
 }
 ```
+
+> **Bilinen sınır (F03):** Bir olay, tüketicisinin kuyruğu **ilk kez** tanımlanmadan yayınlanırsa `q.rota.unrouted`'a düşer ve tüketici sonradan açılsa da ona **otomatik teslim edilmez** (elle yeniden oynatma gerekir). Bu yalnızca ilk kurulum penceresini etkiler (kuyruklar kalıcı). Önlem: dağıtımda tüketici servisleri üreticilerden önce başlatılır; F12'de compose `depends_on` ile yazılır. Henüz tüketicisi olmayan olaylar (ör. `OrderStatusChanged`, Notifications/Ops API gelene kadar) bu yüzden `q.rota.unrouted`'da birikir.
 
 ### Olay kataloğu
 

@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Snapshot candidates awaiting review (see tests/Rota.Contracts.Tests)
+*.received.json

@@ -1,0 +1,78 @@
+# Orders API — sample requests (Visual Studio / VS Code REST Client).
+#
+# One-time local setup (keys are secrets: user-secrets, never the repo):
+#   dotnet ef database update --project src/Services/Orders/Rota.Orders.Api
+#   cd src/Services/Orders/Rota.Orders.Api
+#   dotnet user-secrets set "Orders:DeliveryCodeHashKey"   "<base64 of 32 random bytes>"
+#   dotnet user-secrets set "Orders:ResponseEncryptionKey" "<base64 of 32 random bytes>"
+#   dotnet user-secrets set "Orders:TrackingSigningKey"    "<PKCS#8 PEM of an EC P-256 private key>"
+# Generate in PowerShell:
+#   [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+#   $k=[Security.Cryptography.ECDsa]::Create([Security.Cryptography.ECCurve+NamedCurves]::nistP256); $k.ExportPkcs8PrivateKeyPem()
+#
+# Auth until F08: X-Dev-User: merchant:<id> | courier:<guid> | dispatcher:<id> (Development only, ADR-006).
+
+@host = http://localhost:5101
+@merchant = merchant:merchant-demo
+
+### Create an order (repeat with the same key: same response, still one order)
+# @name create
+POST {{host}}/api/v1/orders
+Content-Type: application/json
+X-Dev-User: {{merchant}}
+Idempotency-Key: demo-key-001
+
+{
+  "merchantOrderRef": "PZ-2026-000123",
+  "pickup":  { "lat": 40.9903, "lon": 29.0290, "address": "Kadıköy Şube, Moda Cd. 10" },
+  "dropoff": { "lat": 40.9850, "lon": 29.0400, "address": "Caferağa Mh. Moda" },
+  "customer": { "name": "Ayşe Y.", "phone": "+905551112233" }
+}
+
+### Same key, different body → 409 idempotency-key-reused
+POST {{host}}/api/v1/orders
+Content-Type: application/json
+X-Dev-User: {{merchant}}
+Idempotency-Key: demo-key-001
+
+{
+  "merchantOrderRef": "PZ-2026-000124",
+  "pickup":  { "lat": 40.9903, "lon": 29.0290, "address": "Kadıköy Şube, Moda Cd. 10" },
+  "dropoff": { "lat": 40.9850, "lon": 29.0400, "address": "Caferağa Mh. Moda" },
+  "customer": { "name": "Ayşe Y.", "phone": "+905551112233" }
+}
+
+### Out of the 15 km service area → 422
+POST {{host}}/api/v1/orders
+Content-Type: application/json
+X-Dev-User: {{merchant}}
+Idempotency-Key: demo-key-ankara
+
+{
+  "merchantOrderRef": "PZ-2026-ANKARA",
+  "pickup":  { "lat": 40.9903, "lon": 29.0290, "address": "Kadıköy" },
+  "dropoff": { "lat": 39.9208, "lon": 32.8541, "address": "Kızılay, Ankara" },
+  "customer": { "name": "Ayşe Y.", "phone": "+905551112233" }
+}
+
+### Get the order
+GET {{host}}/api/v1/orders/{{create.response.body.$.id}}
+X-Dev-User: {{merchant}}
+
+### Another merchant asks for it → 404 (not 403: existence is not revealed)
+GET {{host}}/api/v1/orders/{{create.response.body.$.id}}
+X-Dev-User: merchant:someone-else
+
+### List, newest first (pass nextCursor as "after" for the next page)
+GET {{host}}/api/v1/orders?limit=20
+X-Dev-User: {{merchant}}
+
+### Cancel (body optional)
+POST {{host}}/api/v1/orders/{{create.response.body.$.id}}/cancel
+Content-Type: application/json
+X-Dev-User: {{merchant}}
+
+{ "reason": "customer called" }
+
+### Public key for tracking tokens (Ops API reads this)
+GET {{host}}/.well-known/tracking-jwks

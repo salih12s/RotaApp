@@ -1,0 +1,11 @@
+passed EventContractTests.EveryEvent_FollowsNamingConvention_AndSnapshotFilesAreNotOrphans (17ms)
+passed EventContractTests.Envelope_OfEachEvent_MatchesItsSnapshot(data: OrderCreatedV1 { OrderId = 01933c5e-0000-7000-8000-000000000001, Mer
+passed EventContractTests.Envelope_OfEachEvent_MatchesItsSnapshot(data: OrderStatusChangedV1 { OrderId = 01933c5e-0000-7000-8000-00000000000
+passed EventContractTests.Envelope_OfEachEvent_MatchesItsSnapshot(data: DispatchStartedV1 { OrderId = 01933c5e-0000-7000-8000-000000000001, 
+passed EventContractTests.Envelope_OfEachEvent_MatchesItsSnapshot(data: CourierAssignedV1 { OrderId = 01933c5e-0000-7000-8000-000000000001, 
+passed EventContractTests.Envelope_OfEachEvent_MatchesItsSnapshot(data: DispatchFailedV1 { OrderId = 01933c5e-0000-7000-8000-000000000001, R
+passed EventContractTests.Envelope_OfEachEvent_MatchesItsSnapshot(data: CourierStateChangedV1 { CourierId = 01933c5e-0000-7000-8000-00000000
+passed EventContractTests.EveryEventType_HasASample_SoNoContractIsLeftUnpinned (0ms)
+total: 8
+failed: 0
+succeeded: 8

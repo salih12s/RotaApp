@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Pins the JSON shape of every integration event (docs/05-contracts.md §3). No infrastructure needed. -->
+
+  <PropertyGroup>
+    <!-- xunit.v3 test projects are executables. -->
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Shouldly" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BuildingBlocks\Rota.BuildingBlocks.Messaging\Rota.BuildingBlocks.Messaging.csproj" />
+    <ProjectReference Include="..\..\src\Contracts\Rota.Contracts.Events\Rota.Contracts.Events.csproj" />
+  </ItemGroup>
+
+</Project>

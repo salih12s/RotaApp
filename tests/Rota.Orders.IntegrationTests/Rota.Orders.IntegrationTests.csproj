@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Orders against a real PostgreSQL (Testcontainers): Docker must be running. -->
+
+  <PropertyGroup>
+    <!-- xunit.v3 test projects are executables. -->
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="RabbitMQ.Client" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.RabbitMq" />
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Shouldly" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Services\Orders\Rota.Orders.Api\Rota.Orders.Api.csproj" />
+    <!--
+      Both services have a top-level Program. An alias keeps Dispatch's Program from clashing with Orders'
+      in WebApplicationFactory<Program> (the CS0433 problem the TestKit comment describes).
+    -->
+    <ProjectReference Include="..\..\src\Services\Dispatch\Rota.Dispatch.Api\Rota.Dispatch.Api.csproj" Aliases="DispatchApi" />
+    <ProjectReference Include="..\Rota.TestKit\Rota.TestKit.csproj" />
+  </ItemGroup>
+
+</Project>

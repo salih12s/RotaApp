@@ -1,0 +1,12 @@
+passed Messaging.OutboxCleanupTests.DeleteProcessed_RemovesOnlyOldProcessedRows_NeverUnpublishedOnes (770ms)
+passed Messaging.MessagingTests.Publish_EventWithNoConsumerQueue_IsParkedInUnroutedQueue_AndOutboxRowIsDone (8s 622ms)
+passed Messaging.MessagingTests.RoundTrip_OrderCreatedThroughDispatch_MovesOrderToDispatching_AsOneTrace (2s 605ms)
+passed Messaging.MessagingTests.Consume_MalformedMessage_GoesStraightToDlqWithoutRetries (2s 625ms)
+passed Messaging.BrokerOutageTests.Outage_FiftyOrdersCreatedWhileBrokerIsDown_AllReachDispatchingAfterRestart_NothingLost (18s 154ms)
+passed Messaging.MessagingTests.Consume_PoisonMessage_IsRetriedThreeTimesThenParkedInDlq_WhileLaterMessagesFlow (5s 112ms)
+passed Messaging.MessagingTests.Consume_DispatchStartedForCancelledOrder_IsIgnoredWithoutRetryOrDlq (2s 443ms)
+passed Messaging.MessagingTests.Consume_SameEventDeliveredTwice_HasExactlyOneSideEffect (2s 537ms)
+Test run summary: Passed!
+total: 8
+failed: 0
+succeeded: 8

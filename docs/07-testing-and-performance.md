@@ -34,7 +34,9 @@ Test piramidi hedefi (yaklaşık): unit %60 · integration/API %35 · E2E %5.
 
 - **İsimlendirme:** `Metot_Durum_BeklenenSonuç` → `Cancel_WhenPickedUp_ReturnsConflict`.
 - **Isolation:** Her test kendi verisini kurar; test başına benzersiz `merchantId`/`courierId` (`Guid.CreateVersion7()`). Tablo temizlemeye dayanmayız; testler paralel ve sırasız çalışabilir.
-- **Container paylaşımı:** Container'lar test koleksiyonu başına bir kez başlar (xUnit collection fixture); her test sınıfı aynı DB'yi farklı kimliklerle kullanır.
+- **Trait ve filtre:** Mesajlaşma testleri `[Trait("Category", "Messaging")]` taşır. Microsoft.Testing.Platform'da VSTest'teki `--filter Category=Messaging` yerine `--filter-trait "Category=Messaging"` kullanılır.
+- **Mesajlaşma testlerinde izolasyon:** Broker assembly başına bir kez ve ilk kullanımda başlar; her test kendi **virtual host**'unda, kendi Orders ve Dispatch veritabanlarıyla çalışır (aynı kuyruk adlarını kullanan testler birbirinin mesajını alamaz). Kesinti (R-7) testi kendi broker'ını sabit portla açar, çünkü durdurulup yeniden başlatılır. Test, tüketici topolojisi hazır olmadan olay yayınlamaz (bkz. 05 §3 "Bilinen sınır").
+- **Container paylaşımı:** Container test **assembly'si** başına bir kez başlar ve bir kez migrate edilir (xUnit v3 assembly fixture). Collection fixture yerine bunu seçtik: aynı koleksiyondaki sınıflar sırayla koşar, assembly fixture'da sınıflar paralel kalır. Her test sınıfı aynı DB'yi farklı kimliklerle kullanır.
 - **Zaman:** `FakeTimeProvider` ile saat ileri sarılır; 30 sn'lik teklif testi 30 sn beklemez.
 - **Asenkron bekleme:** `Task.Delay(1000)` yerine "koşul gerçekleşene kadar, en fazla N sn bekle" yardımcısı. Sabit uyku = flaky test.
 - **Race testleri:** `Task.WhenAll` + `Barrier`/`TaskCompletionSource` ile isteklerin gerçekten aynı anda başlaması sağlanır; her race testi döngüyle (ör. 20 tur) çalıştırılır.

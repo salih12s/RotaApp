@@ -8,13 +8,22 @@ namespace Rota.TestKit.Orders;
 /// <summary>Test-only HMAC key and coordinates for the Orders domain.</summary>
 public static class OrderTestData
 {
-    public static DeliveryCodeHasher Hasher { get; } =
-        new(Encoding.ASCII.GetBytes("rota-test-only-delivery-code-key"));
+    public static byte[] HashKey { get; } = Encoding.ASCII.GetBytes("rota-test-only-delivery-code-key");
+
+    public static DeliveryCodeHasher Hasher { get; } = new(HashKey);
 
     // Kadıköy pier → Moda: about 1 km, well inside the service area.
     public static GeoPoint Kadikoy { get; } = GeoPoint.Create(40.9906, 29.0237).Value;
 
     public static GeoPoint Moda { get; } = GeoPoint.Create(40.9819, 29.0254).Value;
+
+    public static OrderLocation KadikoyPickup { get; } = new(Kadikoy, "Kadıköy İskelesi, Rıhtım Cd.");
+
+    public static OrderLocation ModaDropoff { get; } = new(Moda, "Moda Cd. 10, Kadıköy");
+
+    public static CustomerContact Customer { get; } = new("Ayşe Y.", "+905551112233");
+
+    public static string NewMerchantOrderRef() => $"ref-{Guid.CreateVersion7():N}";
 }
 
 /// <summary>An order built for a test, with the inputs a test needs to act on it.</summary>
@@ -60,7 +69,8 @@ public sealed class OrderBuilder
     public BuiltOrder Build()
     {
         var created = Order.Create(
-            Guid.CreateVersion7(), _merchantId, OrderTestData.Kadikoy, OrderTestData.Moda,
+            Guid.CreateVersion7(), _merchantId, OrderTestData.NewMerchantOrderRef(),
+            OrderTestData.KadikoyPickup, OrderTestData.ModaDropoff, OrderTestData.Customer,
             ServiceAreaPolicy.Default, OrderTestData.Hasher, _time.GetUtcNow());
         var (order, code) = (created.Value.Order, created.Value.DeliveryCode);
 

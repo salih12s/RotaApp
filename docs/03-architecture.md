@@ -313,11 +313,15 @@ Rota.Orders.Api/
 | | `Microsoft.AspNetCore.Mvc.Testing` | 10.0.15 | MIT | F00 | |
 | | `Microsoft.Extensions.TimeProvider.Testing` | 11.0.0 | MIT | F01 | `FakeTimeProvider`. Paket `net10.0` hedefini de içeriyor ve bağımlılığı yok; ASP.NET 11.x kısıtı bu pakete uygulanmıyor |
 | | `TngTech.ArchUnitNET`, `TngTech.ArchUnitNET.xUnitV3` | 0.13.5 | Apache-2.0 | F01 | Mimari test. `netstandard2.0`; xunit.v3 entegrasyonu var. NetArchTest.Rules seçilmedi: son sürümü 1.3.2 (2021-05), bakımı yok |
-| | `Testcontainers.PostgreSql`, `.RabbitMq`, `.Redis` | — | — | ilk kullanımda | |
+| | `Testcontainers.PostgreSql` | 4.16.0 | MIT | F02 | `net8.0`/`net10.0`; imaj `postgres:18.6-alpine` (compose ile aynı) |
+| | `Testcontainers.RabbitMq` | 4.16.0 | MIT | F03 | İmaj `rabbitmq:4.4.0-management-alpine` (compose ile aynı). Varsayılan kullanıcıyı container söyler (`guest` değil); test başına ayrı virtual host |
+| | `Testcontainers.Redis` | — | — | ilk kullanımda | |
 | GraphQL | `HotChocolate.AspNetCore`, `HotChocolate.Data.EntityFramework` | 16.7.5 | MIT | F00 (önden) | v16 kararlı, `net10.0` hedefi var. 16.8 preview'da. F09'da sürüm yeniden kontrol edilir |
-| EF Core + PostgreSQL | `Npgsql.EntityFrameworkCore.PostgreSQL` | — | — | F02 | EF Core 10 uyumlu sürüm |
+| EF Core + PostgreSQL | `Npgsql.EntityFrameworkCore.PostgreSQL` | 10.0.3 | PostgreSQL (MIT benzeri) | F02 | `net10.0`; EF Core ≥ 10.0.4 ister |
+| | `Microsoft.EntityFrameworkCore`, `.Relational`, `.Design` | 10.0.15 | MIT | F02 | Npgsql/NamingConventions/Design aynı EF sürümünü çözsün diye sabitlendi; `.Design` yalnız `dotnet ef` için (`PrivateAssets=all`). 11.0.0 yalnız `net11.0` |
+| | `EFCore.NamingConventions` | 10.0.1 | Apache-2.0 | F02 | `snake_case` tablo/kolon adları (04 ile birebir) |
 | Redis | `StackExchange.Redis` | — | — | ilk kullanımda | GEO, Pub/Sub |
-| RabbitMQ | `RabbitMQ.Client` (7.x, tamamen async API) | — | — | F03 | MassTransit kullanılmıyor (ADR-010) |
+| RabbitMQ | `RabbitMQ.Client` (7.x, tamamen async API) | 7.2.2 | Apache-2.0 OR MPL-2.0 | F03 | `net8.0` hedefi, .NET 10'da çalışır. `BasicPublishAsync` publisher confirm takibiyle (`CreateChannelOptions`) kullanılır. MassTransit kullanılmıyor (ADR-010) |
 | gRPC | `Grpc.AspNetCore`, `Grpc.Net.ClientFactory`, `Grpc.Tools` | — | — | ilk kullanımda | |
 | Gateway | `Yarp.ReverseProxy` | — | — | F08 | gRPC ve WebSocket proxy desteği |
 | Dayanıklılık | `Microsoft.Extensions.Http.Resilience` | — | — | ilk kullanımda | Polly v8 tabanlı; timeout, retry, circuit breaker |

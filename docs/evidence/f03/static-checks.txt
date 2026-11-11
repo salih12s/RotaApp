@@ -1,0 +1,20 @@
+$ grep -rn "BasicPublishAsync" src/ --include=*.cs
+src/BuildingBlocks/Rota.BuildingBlocks.Messaging/ConsumerService.cs:295:        await republishChannel.BasicPublishAsync(string.Empty, targetQueue, mandatory: true, properties, delivery.Body, cancellationToken);
+src/BuildingBlocks/Rota.BuildingBlocks.Messaging/OutboxRelay.cs:166:        await channel.BasicPublishAsync(
+src/BuildingBlocks/Rota.BuildingBlocks.Messaging/RabbitMqConnection.cs:20:        // Tracking = BasicPublishAsync completes only after the broker confirmed the message,
+
+$ grep -rnE "autoAck: *true" src/ --include=*.cs
+
+$ grep -rnE "BasicAckAsync|CommitAsync" src/BuildingBlocks/Rota.BuildingBlocks.Messaging/ConsumerService.cs
+150:                await consumeChannel.BasicAckAsync(delivery.DeliveryTag, multiple: false, CancellationToken.None);
+165:            await consumeChannel.BasicAckAsync(delivery.DeliveryTag, multiple: false, CancellationToken.None);
+207:        await transaction.CommitAsync(cancellationToken);
+254:            await consumeChannel.BasicAckAsync(delivery.DeliveryTag, multiple: false, CancellationToken.None);
+
+$ grep -rnE "DateTime(Offset)?\.(Now|UtcNow)" src/ tests/ --include=*.cs
+tests/Rota.TestKit/TestClock.cs:5:/// <summary>Fixed test time. Tests never read the real clock (no DateTime.Now/UtcNow).</summary>
+
+$ grep -rnE "\.ToLower\(\)|\.ToUpper\(\)" src/ tests/ --include=*.cs
+
+$ grep -rl "MediatR\|AutoMapper\|MassTransit\|FluentAssertions" Directory.Packages.props src tests
+

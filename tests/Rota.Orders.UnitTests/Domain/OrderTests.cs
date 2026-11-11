@@ -11,14 +11,16 @@ public sealed class OrderTests
     {
         var now = TestClock.Start;
 
-        var result = Order.Create(Guid.CreateVersion7(), "merchant-a", OrderTestData.Kadikoy, OrderTestData.Moda,
-            ServiceAreaPolicy.Default, OrderTestData.Hasher, now);
+        var result = Order.Create(Guid.CreateVersion7(), "merchant-a", "PZ-1", OrderTestData.KadikoyPickup,
+            OrderTestData.ModaDropoff, OrderTestData.Customer, ServiceAreaPolicy.Default, OrderTestData.Hasher, now);
 
         var order = result.Value.Order;
         order.Status.ShouldBe(OrderStatus.Created);
         order.Version.ShouldBe(1);
         order.CreatedAt.ShouldBe(now);
         order.DistanceMeters.ShouldBeInRange(950, 1000);
+        order.MerchantOrderRef.ShouldBe("PZ-1");
+        order.DropoffLocation.ShouldBe(OrderTestData.ModaDropoff);
         order.History.ShouldHaveSingleItem().ShouldSatisfyAllConditions(
             h => h.From.ShouldBeNull(),
             h => h.To.ShouldBe(OrderStatus.Created),
@@ -30,7 +32,8 @@ public sealed class OrderTests
     {
         var farAway = GeoPoint.Create(39.9208, 32.8541).Value; // Ankara
 
-        var result = Order.Create(Guid.CreateVersion7(), "merchant-a", OrderTestData.Kadikoy, farAway,
+        var result = Order.Create(Guid.CreateVersion7(), "merchant-a", "PZ-1", OrderTestData.KadikoyPickup,
+            new OrderLocation(farAway, "Kızılay, Ankara"), OrderTestData.Customer,
             ServiceAreaPolicy.Default, OrderTestData.Hasher, TestClock.Start);
 
         result.Error.ShouldNotBeNull().Code.ShouldBe("out-of-service-area");

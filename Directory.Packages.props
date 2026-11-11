@@ -10,6 +10,25 @@
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.15" />
   </ItemGroup>
 
+  <ItemGroup Label="Data access (EF Core 10.0.x; Npgsql 10.0.x needs EF >= 10.0.4)">
+    <!-- Pinned so Npgsql, NamingConventions and Design resolve the same EF Core version. -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.15" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.15" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.15" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup Label="Messaging">
+    <!-- Own outbox/inbox on top of the raw client (ADR-010: no messaging framework). 7.x is fully async. -->
+    <PackageVersion Include="RabbitMQ.Client" Version="7.2.2" />
+  </ItemGroup>
+
+  <ItemGroup Label="Security">
+    <!-- ES256 tracking tokens (ADR-007); Ops API validates with the same library in F09. -->
+    <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.23.0" />
+  </ItemGroup>
+
   <ItemGroup Label="Observability">
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.20.1" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.20.2" />
@@ -21,6 +40,8 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.15" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="11.0.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.16.0" />
+    <PackageVersion Include="Testcontainers.RabbitMq" Version="4.16.0" />
     <PackageVersion Include="TngTech.ArchUnitNET" Version="0.13.5" />
     <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.13.5" />
     <!-- Runs on Microsoft.Testing.Platform (global.json "test.runner"); no VSTest packages needed. -->

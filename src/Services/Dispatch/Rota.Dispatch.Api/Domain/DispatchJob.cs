@@ -61,6 +61,10 @@ public sealed record DispatchRules
 /// <summary>The search for a courier for one order. Progresses independently of any courier.</summary>
 public sealed class DispatchJob
 {
+#pragma warning disable CS8618 // EF Core materialization only; every property is set from the row.
+    private DispatchJob() { }
+#pragma warning restore CS8618
+
     private DispatchJob(Guid orderId, string merchantId, double pickupLatitude, double pickupLongitude, DateTimeOffset now)
     {
         OrderId = orderId;

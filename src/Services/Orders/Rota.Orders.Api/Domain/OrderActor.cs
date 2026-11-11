@@ -28,4 +28,9 @@ public sealed record OrderStatusChange(
     OrderStatus To,
     OrderActor Actor,
     string? Reason,
-    DateTimeOffset OccurredAt);
+    DateTimeOffset OccurredAt)
+{
+    // For EF Core materialization only: it cannot bind the complex Actor through the constructor.
+    private OrderStatusChange()
+        : this(null, default, default, null, default) { }
+}

@@ -11,19 +11,27 @@ public sealed class Order
 {
     private readonly List<OrderStatusChange> _history = [];
 
+#pragma warning disable CS8618 // EF Core materialization only; every property is set from the row.
+    private Order() { }
+#pragma warning restore CS8618
+
     private Order(
         Guid id,
         string merchantId,
-        GeoPoint pickup,
-        GeoPoint dropoff,
+        string merchantOrderRef,
+        OrderLocation pickup,
+        OrderLocation dropoff,
+        CustomerContact customer,
         int distanceMeters,
         DeliveryCode deliveryCode,
         DateTimeOffset now)
     {
         Id = id;
         MerchantId = merchantId;
-        PickupPoint = pickup;
-        DropoffPoint = dropoff;
+        MerchantOrderRef = merchantOrderRef;
+        PickupLocation = pickup;
+        DropoffLocation = dropoff;
+        Customer = customer;
         DistanceMeters = distanceMeters;
         DeliveryCode = deliveryCode;
         Status = OrderStatus.Created;
@@ -36,9 +44,15 @@ public sealed class Order
 
     public string MerchantId { get; }
 
-    public GeoPoint PickupPoint { get; }
+    /// <summary>The merchant's own order number; unique per merchant.</summary>
+    public string MerchantOrderRef { get; }
 
-    public GeoPoint DropoffPoint { get; }
+    public OrderLocation PickupLocation { get; }
+
+    public OrderLocation DropoffLocation { get; }
+
+    /// <summary>Personal data (KVKK): never logged unmasked.</summary>
+    public CustomerContact Customer { get; }
 
     public int DistanceMeters { get; }
 
@@ -55,28 +69,39 @@ public sealed class Order
 
     public DateTimeOffset UpdatedAt { get; private set; }
 
+    /// <summary>
+    /// Status changes recorded on this instance. An order loaded from the database starts with an
+    /// empty list unless the history is explicitly included; new changes are appended and saved.
+    /// </summary>
     public IReadOnlyList<OrderStatusChange> History => _history;
 
     public static Result<NewOrder> Create(
         Guid id,
         string merchantId,
-        GeoPoint pickup,
-        GeoPoint dropoff,
+        string merchantOrderRef,
+        OrderLocation pickup,
+        OrderLocation dropoff,
+        CustomerContact customer,
         ServiceAreaPolicy serviceArea,
         DeliveryCodeHasher hasher,
         DateTimeOffset now)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(merchantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(merchantOrderRef);
+        ArgumentNullException.ThrowIfNull(pickup);
+        ArgumentNullException.ThrowIfNull(dropoff);
+        ArgumentNullException.ThrowIfNull(customer);
         ArgumentNullException.ThrowIfNull(serviceArea);
 
-        var distance = serviceArea.CheckDistance(pickup, dropoff);
+        var distance = serviceArea.CheckDistance(pickup.Point, dropoff.Point);
         if (distance.IsFailure)
         {
             return distance.Error;
         }
 
         var (deliveryCode, plainText) = DeliveryCode.Generate(hasher);
-        var order = new Order(id, merchantId, pickup, dropoff, distance.Value, deliveryCode, now);
+        var order = new Order(
+            id, merchantId, merchantOrderRef, pickup, dropoff, customer, distance.Value, deliveryCode, now);
         order._history.Add(new OrderStatusChange(null, OrderStatus.Created, OrderActor.Merchant(merchantId), null, now));
 
         return new NewOrder(order, plainText);
@@ -161,6 +186,17 @@ public sealed class Order
         return Result.Success();
     }
 }
+
+/// <summary>A pickup or dropoff stop: where (coordinates) and the human-readable address.</summary>
+public sealed record OrderLocation(GeoPoint Point, string Address)
+{
+    // For EF Core materialization only: it cannot bind the complex Point through the constructor.
+    private OrderLocation()
+        : this(default, string.Empty) { }
+}
+
+/// <summary>The end customer the parcel goes to. Personal data (KVKK).</summary>
+public sealed record CustomerContact(string Name, string Phone);
 
 /// <summary>A freshly created order plus its plain-text delivery code (returned to the merchant once).</summary>
 public sealed record NewOrder(Order Order, string DeliveryCode);

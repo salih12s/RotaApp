@@ -1,3 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- Shared EF Core settings for every service database (PostgreSQL, snake_case). -->
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="EFCore.NamingConventions" />
+  </ItemGroup>
+
 </Project>

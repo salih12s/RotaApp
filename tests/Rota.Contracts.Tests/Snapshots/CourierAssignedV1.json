@@ -1,0 +1,15 @@
+{
+  "eventId": "01933c5e-0000-7000-8000-0000000000ff",
+  "type": "CourierAssigned.v1",
+  "occurredAt": "2026-11-11T10:31:05+00:00",
+  "aggregateId": "01933c5e-0000-7000-8000-000000000001",
+  "aggregateVersion": 1,
+  "data": {
+    "orderId": "01933c5e-0000-7000-8000-000000000001",
+    "courierId": "01933c5e-0000-7000-8000-000000000002",
+    "offerId": "01933c5e-0000-7000-8000-000000000003",
+    "assignmentType": "Auto",
+    "etaSeconds": 420,
+    "assignedAt": "2026-11-11T10:31:05+00:00"
+  }
+}

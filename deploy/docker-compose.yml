@@ -1,0 +1,67 @@
+# Local infrastructure for Rota. Services run from Visual Studio (ADR-012).
+# Credentials below are local development values only.
+name: rota
+
+services:
+  postgres:
+    image: postgres:18.6-alpine
+    environment:
+      POSTGRES_USER: rota
+      POSTGRES_PASSWORD: rota_dev
+      POSTGRES_DB: rota
+    ports:
+      - "5432:5432"
+    volumes:
+      # PostgreSQL 18 images keep data under /var/lib/postgresql/<major>/ (not /data).
+      - postgres-data:/var/lib/postgresql
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rota -d rota_orders"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  rabbitmq:
+    image: rabbitmq:4.4.0-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: rota
+      RABBITMQ_DEFAULT_PASS: rota_dev
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+
+  redis:
+    image: redis:8.10.3-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Trace/log/metric UI only (not Aspire orchestration). UI: http://localhost:18888
+  # Distroless image: no shell/curl inside, so no container health check is possible.
+  dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:13.6.5
+    environment:
+      ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"
+    ports:
+      - "18888:18888"
+      - "4317:18889"
+
+volumes:
+  postgres-data:
+  rabbitmq-data:
+  redis-data:

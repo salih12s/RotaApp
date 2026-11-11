@@ -1,0 +1,37 @@
+[
+  {
+    "Name": "Tüm servisler",
+    "Projects": [
+      {
+        "Path": "src\\Gateway\\Rota.Gateway\\Rota.Gateway.csproj",
+        "Action": "Start",
+        "DebugTarget": "http"
+      },
+      {
+        "Path": "src\\Services\\Orders\\Rota.Orders.Api\\Rota.Orders.Api.csproj",
+        "Action": "Start",
+        "DebugTarget": "http"
+      },
+      {
+        "Path": "src\\Services\\Dispatch\\Rota.Dispatch.Api\\Rota.Dispatch.Api.csproj",
+        "Action": "Start",
+        "DebugTarget": "http"
+      },
+      {
+        "Path": "src\\Services\\Tracking\\Rota.Tracking.Api\\Rota.Tracking.Api.csproj",
+        "Action": "Start",
+        "DebugTarget": "http"
+      },
+      {
+        "Path": "src\\Services\\Notifications\\Rota.Notifications.Api\\Rota.Notifications.Api.csproj",
+        "Action": "Start",
+        "DebugTarget": "http"
+      },
+      {
+        "Path": "src\\Services\\OpsApi\\Rota.OpsApi\\Rota.OpsApi.csproj",
+        "Action": "Start",
+        "DebugTarget": "http"
+      }
+    ]
+  }
+]

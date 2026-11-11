@@ -1,0 +1,6 @@
+﻿http://localhost:5000/health/live -> 200
+http://localhost:5101/health/live -> 200
+http://localhost:5102/health/live -> 200
+http://localhost:5103/health/live -> 200
+http://localhost:5104/health/live -> 200
+http://localhost:5105/health/live -> 200

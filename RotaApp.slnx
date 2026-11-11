@@ -1,0 +1,39 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="CLAUDE.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="RotaApp.slnLaunch" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/Rota.BuildingBlocks.Messaging/Rota.BuildingBlocks.Messaging.csproj" />
+    <Project Path="src/BuildingBlocks/Rota.BuildingBlocks.Persistence/Rota.BuildingBlocks.Persistence.csproj" />
+    <Project Path="src/BuildingBlocks/Rota.BuildingBlocks.Primitives/Rota.BuildingBlocks.Primitives.csproj" />
+    <Project Path="src/BuildingBlocks/Rota.BuildingBlocks.Web/Rota.BuildingBlocks.Web.csproj" />
+  </Folder>
+  <Folder Name="/src/Contracts/">
+    <Project Path="src/Contracts/Rota.Contracts.Events/Rota.Contracts.Events.csproj" />
+    <Project Path="src/Contracts/Rota.Contracts.Protos/Rota.Contracts.Protos.csproj" />
+  </Folder>
+  <Folder Name="/src/Gateway/">
+    <Project Path="src/Gateway/Rota.Gateway/Rota.Gateway.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/">
+    <Project Path="src/Services/Dispatch/Rota.Dispatch.Api/Rota.Dispatch.Api.csproj" />
+    <Project Path="src/Services/Notifications/Rota.Notifications.Api/Rota.Notifications.Api.csproj" />
+    <Project Path="src/Services/OpsApi/Rota.OpsApi/Rota.OpsApi.csproj" />
+    <Project Path="src/Services/Orders/Rota.Orders.Api/Rota.Orders.Api.csproj" />
+    <Project Path="src/Services/Tracking/Rota.Tracking.Api/Rota.Tracking.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Simulators/">
+    <Project Path="src/Simulators/Rota.Sim.CourierFleet/Rota.Sim.CourierFleet.csproj" />
+    <Project Path="src/Simulators/Rota.Sim.Merchant/Rota.Sim.Merchant.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Rota.Orders.UnitTests/Rota.Orders.UnitTests.csproj" />
+    <Project Path="tests/Rota.TestKit/Rota.TestKit.csproj" />
+  </Folder>
+</Solution>

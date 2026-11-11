@@ -1,0 +1,2 @@
+﻿VS 2026, "Tüm servisler" profili (RotaApp.slnLaunch) ile F5: 6 servis başladı, /health/live 200 (Salih tarafından doğrulandı, 2026-11-11).
+Not: Profil, solution dosyalar değişmeden önce açık olduğu için ilk denemede görünmedi; Configure Startup Projects ile seçilince çalıştı. VS'in kaydettiği slnLaunch içeriği repodakiyle aynı.

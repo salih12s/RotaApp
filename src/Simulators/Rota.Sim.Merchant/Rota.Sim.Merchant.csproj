@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\BuildingBlocks\Rota.BuildingBlocks.Web\Rota.BuildingBlocks.Web.csproj" />
+  </ItemGroup>
+
+</Project>

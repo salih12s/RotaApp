@@ -19,7 +19,11 @@ public sealed class OrderCreatedHandler(DispatchDbContext db, TimeProvider time)
         var order = message.Data;
         var now = time.GetUtcNow();
 
-        db.DispatchJobs.Add(DispatchJob.Start(order.OrderId, order.MerchantId, order.Pickup.Lat, order.Pickup.Lon, now));
+        db.DispatchJobs.Add(DispatchJob.Start(
+            order.OrderId, order.MerchantId,
+            new JobPlace(order.Pickup.Lat, order.Pickup.Lon, order.Pickup.Address),
+            new JobPlace(order.Dropoff.Lat, order.Dropoff.Lon, order.Dropoff.Address),
+            now));
         db.AddToOutbox(new DispatchStartedV1(order.OrderId, now), order.OrderId, aggregateVersion: 1, now);
 
         return Task.CompletedTask;

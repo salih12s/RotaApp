@@ -157,6 +157,19 @@ message Heartbeat { google.protobuf.Timestamp server_time = 1; }
 - **Yetki:** `StreamLocations` yalnız `courier` rolü (kimlik token'dan, mesajdan değil); `GetNearbyCouriers` ve `GetLastLocations` yalnız `service` rolü (Dispatch, Ops API): bir kurye diğer kuryelerin yerini soramaz. Rol dışı → `PERMISSION_DENIED`, kimlik yok → `UNAUTHENTICATED`.
 - **Portlar (yerel):** HTTP/1.1 `5103` (health), gRPC HTTP/2 `5203` (TLS'siz yerelde ayrı port).
 
+### Dispatch ayrıntıları (F05)
+
+- **Portlar (yerel):** HTTP/1.1 `5102` (REST, health), gRPC HTTP/2 `5202`.
+- **`POST /couriers/me/shift/start`:** gövde isteğe bağlı `{ "displayName": "..." }` (≤ 100). Kurye ilk vardiyada kendini kaydeder (04). Zaten `Available`/başka durumdaysa 409 `invalid-courier-transition` (`currentState` eklenir). Aynı kurye aynı anda birden çok kez başlatırsa biri 200, diğerleri 409 alır.
+- **`POST /offers/{id}/accept|reject`:** teklif başkasınınsa ya da yoksa **404** (ayrım yok). Süresi dolmuş ama zaman aşımı işi henüz kapatmamış teklif de 409 `offer-not-pending` verir: kabul/ret koşulu `expires_at > şimdi`'dir. Yanıt `{ offerId, orderId, status }`.
+- **`GET /couriers/me/offers`:** bekleyen teklif listesi (0 ya da 1 eleman): `id, orderId, pickup{lat,lon,address}, dropoff{...}, distanceMeters, etaSeconds, expiresAt`.
+- **`POST /dispatch-jobs/{orderId}/manual-assign`:** yalnız `Searching` ya da `Unassigned` iş atanabilir; açık teklif varken (`Offering`) ve biten işte 409 `job-not-assignable`. Kurye `Available` değilse 409 `courier-not-available` (`currentState`), yoksa 404; her ikisinde işin durumu **değişmez** (aynı transaction'da geri alınır). Yayınlanan `CourierAssigned.v1`: `assignmentType: Manual`, `offerId: null`, `etaSeconds: 0` (rota hesaplanmadı).
+- **`POST /dispatch-jobs/{orderId}/restart`:** yalnız `Unassigned` iş; 202. Aynı iş yeniden `Searching` olur (bkz. `02 §5.4` notu) ve `DispatchStarted.v1` yeniden yayınlanır (Orders: `Unassigned → Dispatching`).
+- **`SubscribeOffers`:** bağlanınca bekleyen teklif **ilk** olay olarak gelir. `withdrawn.reason`: `order-cancelled` ya da `expired`; kuryenin kendi kabul/reddi için `withdrawn` gönderilmez. Kalp atışı `StreamHeartbeat` (15 sn). Aynı kurye birden çok akış açabilirse hepsi aynı teklifi alır (yeniden bağlanma anında eski akış kapanmadan yenisi açılabilir). Kimlik token'dan: rol `courier` değilse `PERMISSION_DENIED`, kimlik yoksa `UNAUTHENTICATED`.
+- **Olaylar:** `DispatchFailed.v1.reason` = `NoCandidates` (3 dk içinde kimse bulunamadı) ya da `MaxAttemptsReached` (5 teklif düştü). `CourierStateChanged.v1.courierVersion` = `couriers.version`. İş düzeyindeki olaylarda (`DispatchStarted`, `CourierAssigned`, `DispatchFailed`) `aggregateVersion` sabit 1'dir: Orders bu olayları sürümle değil durum makinesiyle eler (geçersiz geçiş → yok say, ACK).
+- **Dispatch'in kuyrukları:** `q.dispatch.order-created` (`OrderCreated`), `q.dispatch.order-status-changed` (`OrderStatusChanged`: `Cancelled` → iş/teklif iptal + kurye serbest; `Delivered`/`Returned` → kurye `Available`). Orders'ınkiler: `q.orders.dispatch-started`, `q.orders.courier-assigned`, `q.orders.dispatch-failed`. İptal olayı, siparişin kendi `OrderCreated`'ını geçerse (farklı kuyruklar) iş henüz yoktur; tüketici hata verip yeniden denemeye bırakır (05 §3 yeniden deneme kuyrukları), "ACK edip unutmaz".
+- **Tracking istemcisi:** `GetNearbyCouriers` için tüm çağrıya (yeniden deneme dahil) 200 ms deadline; kanal düzeyinde 1 yeniden deneme yalnız `UNAVAILABLE`'da (gRPC `ServiceConfig`). `DEADLINE_EXCEEDED`/`UNAVAILABLE` sonrası iş `Searching`'de kalır, `next_search_at` 20 sn sonraya konur (deneme sayısı artmaz). Diğer gRPC hataları (ör. `INVALID_ARGUMENT`) yeniden denenmez ve bir hata olarak yukarı çıkar.
+
 ### gRPC durum kodları
 
 | Durum | Kod |

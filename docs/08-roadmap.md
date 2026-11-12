@@ -9,8 +9,8 @@
 | F02 | Orders servisi | L | ✅ PASS |
 | F03 | Güvenilir mesajlaşma (Outbox/Inbox) | L | ✅ PASS |
 | F04 | Tracking: konum akışı | L | ✅ PASS |
-| F05 | Dispatch: otomatik atama | XL | ⏭️ Sıradaki |
-| F06 | Teslimat akışı ve iptal kuralları | M | Bekliyor |
+| F05 | Dispatch: otomatik atama | XL | ✅ PASS |
+| F06 | Teslimat akışı ve iptal kuralları | M | ⏭️ Sıradaki |
 | F07 | Notifications: güvenilir webhook | M | Bekliyor |
 | F08 | Gateway + Keycloak + yetki | L | Bekliyor |
 | F09 | Ops API: GraphQL ve canlı takip | L | Bekliyor |
@@ -20,7 +20,7 @@
 | F13 | *(opsiyonel)* Dispatcher harita arayüzü | M | Bekliyor |
 | F14 | *(opsiyonel, koşullu)* Kafka ile yeniden oynatma | M | Bekliyor |
 
-> **Devir notu (2026-11-11, F04 sonu):** F00–F04 bitti ve commit'li (`faz/f04-tracking`, F03'ün üstünden açıldı; `main`'e henüz PR yok). Sıradaki **F05** (XL, Opus önerilir, yeni oturumda). F05 için hazır olanlar: Dispatch'te `DispatchDbContext`/`dispatch_jobs`, `OrderCreated` tüketicisi, outbox/inbox altyapısı (F03); Tracking'te `GetNearbyCouriers`/`GetLastLocations` gRPC uçları ve `service` rolü (F04, deadline/retry istemci tarafı F05'te yazılacak). Bilinen açıklar: bayat kurye temizlik işi, konum hız sınırı, DB `/health/ready` kontrolü. Yerelde servis çalıştırmak için PostgreSQL port çakışması (5432) ve user-secrets anahtarları gerekir (bkz. `docs/evidence/f02/README.md`). Test komutu: `dotnet test RotaApp.slnx` (Docker açık olmalı; 427 test).
+> **Devir notu (2026-11-12, F05 sonu):** F00–F05 bitti ve commit'li (`faz/f05-dispatch`, F04'ün üstünden açıldı; `main`'e henüz PR yok). Sıradaki **F06** (M, Sonnet yeter, yeni oturumda). F06 için hazır olanlar: Dispatch'te kurye `OnDelivery`'den yalnız Orders'ın `OrderStatusChanged` (`Delivered`/`Returned`/`Cancelled`) olayıyla çıkıyor (testli); `Courier.FinishDelivery` etkin. **Açık karar (Salih):** `02 §5.4` ("yeniden başlatınca yeni iş") ile `04` (`order_id` PK) çelişiyordu, F05'te aynı iş yeniden açılıyor (`Unassigned → Searching`); ayrıntı `02 §5.4` notunda. Bilinen açıklar: bayat kurye temizlik işi, konum hız sınırı, DB `/health/ready` kontrolü (F04'ten), ilk aramalarda 200 ms deadline soğuk başlangıçta aşılabiliyor, Redis kapalıyken Tracking konum alımı hata veriyor (bkz. `docs/evidence/f05/README.md`). Yerelde servis çalıştırmak için PostgreSQL port çakışması (5432) ve user-secrets anahtarları gerekir (bkz. `docs/evidence/f02/README.md`); Dispatch yerelde HTTP `5102`, gRPC `5202`. Test komutu: `dotnet test RotaApp.slnx` (Docker açık olmalı; 552 test).
 
 Durum değerleri: `Bekliyor` · `⏭️ Sıradaki` · `🔨 Devam ediyor` · `✅ PASS` · `❌ FAIL (gerekçe)`. Faz kapanınca bu tablo aynı PR'da güncellenir.
 
@@ -273,17 +273,19 @@ dotnet run --project src/Simulators/Rota.Sim.CourierFleet -- --couriers 200 --in
 **Öğrenilecek kavramlar:** Koşullu update ile rezervasyon, kısmi unique indeks, `FOR UPDATE SKIP LOCKED`, gRPC client (`Grpc.Net.ClientFactory`) + deadline, gRPC server-streaming, Redis Pub/Sub ile instance'lar arası yönlendirme, yeniden bağlanma, nihai tutarlılık.
 
 **Yapılacaklar**
-- [ ] Tablolar ve migration ([04 Dispatch](04-data-model.md)); vardiya uçları
-- [ ] Aday arama: Tracking `GetNearbyCouriers` (deadline 200 ms) → `CandidateRanker`
-- [ ] Teklif verme: kurye koşullu update + teklif insert + outbox (`CourierStateChanged`) tek transaction; ardından Redis'e yayın
-- [ ] `SubscribeOffers` server-streaming: bağlanınca bekleyen teklif, Redis kanalına abonelik, 15 sn heartbeat, iptal/zaman aşımında `OfferWithdrawn`
-- [ ] Kabul/ret uçları (koşullu update) → `CourierAssigned.v1`
-- [ ] Zaman aşımı işi (`SKIP LOCKED`), sıradaki aday, en fazla 5 deneme → `DispatchFailed.v1`; aday yoksa `next_search_at` ile yeniden arama (3 dk)
-- [ ] Elle atama ve yeniden başlatma uçları
-- [ ] `OrderStatusChanged` tüketicisi: `Cancelled` → teklif/iş iptal, kurye serbest; `Delivered`/`Returned` → kurye `Available`
-- [ ] Orders: `CourierAssigned` ve `DispatchFailed` tüketicileri
-- [ ] `CourierFleetSim` v2: teklifleri olasılıkla kabul/ret eder, bazen hiç cevap vermez
-- [ ] Metrik: sipariş → ilk teklif süresi
+- [x] Tablolar ve migration ([04 Dispatch](04-data-model.md)); vardiya uçları
+- [x] Aday arama: Tracking `GetNearbyCouriers` (deadline 200 ms) → `CandidateRanker`
+- [x] Teklif verme: kurye koşullu update + teklif insert + outbox (`CourierStateChanged`) tek transaction; ardından Redis'e yayın
+- [x] `SubscribeOffers` server-streaming: bağlanınca bekleyen teklif, Redis kanalına abonelik, 15 sn heartbeat, iptal/zaman aşımında `OfferWithdrawn`
+- [x] Kabul/ret uçları (koşullu update) → `CourierAssigned.v1`
+- [x] Zaman aşımı işi (`SKIP LOCKED`), sıradaki aday, en fazla 5 deneme → `DispatchFailed.v1`; aday yoksa `next_search_at` ile yeniden arama (3 dk)
+- [x] Elle atama ve yeniden başlatma uçları
+- [x] `OrderStatusChanged` tüketicisi: `Cancelled` → teklif/iş iptal, kurye serbest; `Delivered`/`Returned` → kurye `Available`
+- [x] Orders: `CourierAssigned` ve `DispatchFailed` tüketicileri
+- [x] `CourierFleetSim` v2: teklifleri olasılıkla kabul/ret eder, bazen hiç cevap vermez
+- [x] Metrik: sipariş → ilk teklif süresi
+
+> **F05 kararları (Salih onayı: faz onayı 2026-11-12; aşağıdakiler uygulama sırasında alındı, plan kısmı yoktu):** (1) Her durum geçişi **koşullu UPDATE**'tir; kurye geçişleri doğrudan SQL, iş geçişinde durumu **domain** seçer, yazma `status` + `offer_attempts` koşuluyla yapılır. Kilit sırası teklif → iş → kurye (04). (2) Zaman aşımı ve iş arama `FOR UPDATE SKIP LOCKED`; arama işçisi işi **kira** ile alır (`next_search_at` ileri itilir). (3) Redis yalnız uyandırma: yayın commit'ten sonra (`DbContext.AfterCommit`) ve `FireAndForget`; akış DB'den okur, Redis yokken 1 sn'lik yoklamaya düşer. (4) Bir kurye bir siparişin teklifini bir kez alır. (5) Tracking yanıt vermezse iş ertelenir (`Postpone`), deneme sayısı artmaz. (6) Kurye ilk `shift/start`'ta kendini kaydeder (F08'e kadar). (7) `DispatchJob`'a `Postpone`/`Restart`/`ManualAssign`, `Courier`'a `Version`; `dispatch_jobs`'a adres/varış, `couriers`'a `version` sütunları eklendi (04). (8) **Çelişki, karar bekliyor:** yeniden başlatma aynı işi açar (`02 §5.4` notu). Kanıt: `docs/evidence/f05/`.
 
 **Kapsam dışı:** Teslim alma/teslim (F06), gerçek kimlik (F08).
 
@@ -348,7 +350,7 @@ dotnet run --project src/Simulators/Rota.Sim.Merchant -- --orders 50
 **Yapılacaklar**
 - [ ] Abonelik uçları; secret üretimi; Data Protection anahtarlarının **kalıcı** saklanması (yeniden başlatmada secret'lar çözülebilmeli)
 - [ ] URL doğrulama: https + DNS çözümlemesi sonrası özel IP reddi
-- [ ] `OrderStatusChanged` tüketicisi → `webhook_deliveries`
+- [x] `OrderStatusChanged` tüketicisi → `webhook_deliveries`
 - [ ] Teslim işçisi: `SKIP LOCKED`, imza, 10 sn timeout, backoff tablosu, `Dead`; işletme başına bulkhead (eşzamanlı 4) ve circuit breaker
 - [ ] DLQ listeleme ve replay uçları
 - [ ] `MerchantSim` webhook alıcısı: imza doğrulama, hata modları (500, timeout, yavaş)

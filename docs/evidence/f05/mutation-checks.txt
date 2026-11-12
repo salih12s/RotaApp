@@ -1,0 +1,21 @@
+== Mutasyon kontrolleri (test kalitesi: kodu boz, test yakalıyor mu?) ==
+
+M1 (R-1): DispatchSql.TryReserveCourierAsync'ten 'AND state = Available' kaldırıldı
+  sonuç: R1 kırıldı; çift teklifi KISMİ UNIQUE İNDEKS durdurdu (23505 ux_offers_one_pending_per_courier). Yani uygulama koşulu bozulsa bile veritabanı ikinci katmandır.
+
+M2 (R-2): OfferResponseService kabul UPDATE'inden 'status = Pending' kaldırıldı (yalnız expires_at > now kaldı)
+  failed Rota.Dispatch.IntegrationTests.Offering.RaceTests.R2_AcceptAndTimeoutAtTheSameInstant_NeverProduceBothAssignmentAndFailureEvents (5s 449ms)
+  failed Rota.Dispatch.IntegrationTests.Offering.RaceTests.R2_AcceptAndTimeoutAtTheSameInstant_ExactlyOneIsApplied (624ms)
+    total: 4
+    failed: 2
+    succeeded: 2
+
+M3 (R-3): OfferTimeoutProcessor'dan 'FOR UPDATE SKIP LOCKED' ve UPDATE'teki 'status = Pending AND expires_at <= now' kaldırıldı
+  failed Rota.Dispatch.IntegrationTests.Offering.RaceTests.R2_AcceptAndTimeoutAtTheSameInstant_NeverProduceBothAssignmentAndFailureEvents (6s 737ms)
+  failed Rota.Dispatch.IntegrationTests.Offering.RaceTests.R3_TwoTimeoutWorkersAtTheSameTime_ProcessEveryOfferExactlyOnce (1s 529ms)
+  failed Rota.Dispatch.IntegrationTests.Offering.RaceTests.R2_AcceptAndTimeoutAtTheSameInstant_ExactlyOneIsApplied (758ms)
+    total: 4
+    failed: 3
+    succeeded: 1
+
+Her mutasyondan sonra dosyalar yedekle birebir karşılaştırıldı (diff boş) ve kodda MUTATION kalıntısı yok (0).

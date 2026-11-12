@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+// Dispatch gRPC contract (docs/05-contracts.md §2). The package name carries the version:
+// a published version is never edited, a breaking change becomes rota.dispatch.v2.
+package rota.dispatch.v1;
+
+option csharp_namespace = "Rota.Contracts.Dispatch.V1";
+
+import "google/protobuf/timestamp.proto";
+
+// Dispatch -> courier (server-streaming). The courier keeps the call open; the courier's identity
+// comes from the token, never from a message, so nobody can listen to another courier's offers.
+service CourierOffers {
+  rpc SubscribeOffers (SubscribeOffersRequest) returns (stream OfferEvent);
+}
+
+message SubscribeOffersRequest {}
+
+message GeoPoint {
+  double lat = 1;
+  double lon = 2;
+  string address = 3;
+}
+
+message OfferEvent {
+  oneof event {
+    Offer offer = 1;               // a new offer; a waiting one is sent first when the courier connects
+    OfferWithdrawn withdrawn = 2;  // order cancelled or offer expired
+    Heartbeat heartbeat = 3;       // every 15 s, so proxies do not cut an idle connection
+  }
+}
+
+message Offer {
+  string offer_id = 1;
+  string order_id = 2;
+  GeoPoint pickup = 3;
+  GeoPoint dropoff = 4;
+  int32 distance_m = 5;
+  int32 eta_seconds = 6;
+  google.protobuf.Timestamp expires_at = 7;
+}
+
+message OfferWithdrawn {
+  string offer_id = 1;
+  string reason = 2;
+}
+
+message Heartbeat {
+  google.protobuf.Timestamp server_time = 1;
+}

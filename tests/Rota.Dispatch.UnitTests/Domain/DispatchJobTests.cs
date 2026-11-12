@@ -15,13 +15,18 @@ public sealed class DispatchJobTests
         [(DispatchJobStatus.Searching, DispatchJobAction.StartOffering)] = DispatchJobStatus.Offering,
         [(DispatchJobStatus.Searching, DispatchJobAction.NoCandidatesFound)] = DispatchJobStatus.Searching,
         [(DispatchJobStatus.Searching, DispatchJobAction.Cancel)] = DispatchJobStatus.Cancelled,
+        [(DispatchJobStatus.Searching, DispatchJobAction.Postpone)] = DispatchJobStatus.Searching,
+        [(DispatchJobStatus.Searching, DispatchJobAction.ManualAssign)] = DispatchJobStatus.Completed,
         [(DispatchJobStatus.Offering, DispatchJobAction.OfferDeclined)] = DispatchJobStatus.Searching,
         [(DispatchJobStatus.Offering, DispatchJobAction.Complete)] = DispatchJobStatus.Completed,
         [(DispatchJobStatus.Offering, DispatchJobAction.Cancel)] = DispatchJobStatus.Cancelled,
+        [(DispatchJobStatus.Unassigned, DispatchJobAction.Restart)] = DispatchJobStatus.Searching,
+        [(DispatchJobStatus.Unassigned, DispatchJobAction.ManualAssign)] = DispatchJobStatus.Completed,
     };
 
     private static DispatchJob NewJob(FakeTimeProvider time) =>
-        DispatchJob.Start(Guid.CreateVersion7(), $"merchant-{Guid.CreateVersion7()}", 40.99, 29.02, time.GetUtcNow());
+        DispatchJob.Start(Guid.CreateVersion7(), $"merchant-{Guid.CreateVersion7()}",
+            new JobPlace(40.99, 29.02, "Pickup St 1"), new JobPlace(41.01, 29.05, "Dropoff St 2"), time.GetUtcNow());
 
     private static DispatchJob JobIn(DispatchJobStatus status, FakeTimeProvider time)
     {
@@ -70,6 +75,9 @@ public sealed class DispatchJobTests
             DispatchJobAction.NoCandidatesFound => job.NoCandidatesFound(_rules, now),
             DispatchJobAction.Complete => job.Complete(now),
             DispatchJobAction.Cancel => job.Cancel(now),
+            DispatchJobAction.Postpone => job.Postpone(_rules, now),
+            DispatchJobAction.Restart => job.Restart(now),
+            DispatchJobAction.ManualAssign => job.ManualAssign(now),
             _ => throw new ArgumentOutOfRangeException(nameof(action), action, null),
         };
 
@@ -141,5 +149,33 @@ public sealed class DispatchJobTests
 
         job.NextSearchAt.ShouldBeNull();
         job.OfferAttempts.ShouldBe(1);
+    }
+
+    [Fact]
+    public void Postpone_InSearching_KeepsStatusAndSchedulesRetry()
+    {
+        var job = NewJob(TestClock.Create());
+        var now = job.SearchStartedAt + TimeSpan.FromSeconds(1);
+
+        job.Postpone(_rules, now).IsSuccess.ShouldBeTrue();
+
+        job.Status.ShouldBe(DispatchJobStatus.Searching);
+        job.NextSearchAt.ShouldBe(now + _rules.SearchRetryInterval);
+        job.OfferAttempts.ShouldBe(0, "a Tracking failure is not an offer attempt");
+    }
+
+    [Fact]
+    public void Restart_AfterGivingUp_ResetsAttemptsAndSearchClock()
+    {
+        var time = TestClock.Create();
+        var job = JobIn(DispatchJobStatus.Unassigned, time);
+        var later = job.SearchStartedAt + TimeSpan.FromMinutes(10);
+
+        job.Restart(later).IsSuccess.ShouldBeTrue();
+
+        job.Status.ShouldBe(DispatchJobStatus.Searching);
+        job.OfferAttempts.ShouldBe(0);
+        job.SearchStartedAt.ShouldBe(later, "the 3-minute search budget starts over");
+        job.NextSearchAt.ShouldBeNull();
     }
 }

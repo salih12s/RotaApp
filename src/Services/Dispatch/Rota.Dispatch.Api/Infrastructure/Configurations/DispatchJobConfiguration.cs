@@ -17,6 +17,10 @@ internal sealed class DispatchJobConfiguration : IEntityTypeConfiguration<Dispat
         builder.Property(j => j.MerchantId);
         builder.Property(j => j.PickupLatitude).HasColumnName("pickup_lat");
         builder.Property(j => j.PickupLongitude).HasColumnName("pickup_lon");
+        builder.Property(j => j.PickupAddress);
+        builder.Property(j => j.DropoffLatitude).HasColumnName("dropoff_lat");
+        builder.Property(j => j.DropoffLongitude).HasColumnName("dropoff_lon");
+        builder.Property(j => j.DropoffAddress);
         builder.Property(j => j.SearchStartedAt);
 
         builder.Property(j => j.Status).HasConversion<string>();

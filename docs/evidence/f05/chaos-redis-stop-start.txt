@@ -1,0 +1,47 @@
+== F05 PASS 6, el ile kaos denemesi (otomatik test DEĞİL): Redis durdur / başlat ==
+Düzen: gerçek Tracking + Dispatch süreçleri (dotnet run), geçici Docker PostgreSQL + Redis, simülatör v2 (20 kurye, 75 sn).
+Betik: aşağıdaki çıktıyı üreten adımlar: 12. sn 6 iş (dalga 1) -> 25. sn `docker stop f05-redis` -> 28. sn 6 iş (dalga 2, Redis kapalıyken)
+       -> 47. sn `docker start f05-redis` -> 75. sn son durum. "postponed" sütunu = next_search_at ileride (arama ertelenmiş).
+Okuma notu: dalga 1, Redis daha açıkken de ertelendi: süreç başlangıcındaki ilk GetNearbyCouriers çağrıları (JIT/ısınma) 200 ms deadline'ı aştı
+            (Dispatch günlüğü: "failed with DeadlineExceeded"). Tasarım gereği doğru davranış (iş Searching'de kalır, 20 sn sonra tekrar), ama
+            "Redis açıkken anında teklif" tabanı bu denemede temiz gösterilemedi; bkz. rapordaki "bilinen sınırlar".
+Sonuç: Redis kapalıyken dalga 2 `Searching`'de ertelendi, teklif YOK; Redis dönünce iki dalganın 12 işinin 10'u atandı, 2'si teklifte; çift rezervasyon 0.
+
+---- t~23s: Redis is up, wave1 should be getting offers (08:38:35)
+wave1-before-outage | Searching | 6 | 6
+double-booked couriers | 0
+orders with 2 active offers | 0
+
+>>> docker stop f05-redis
+
+---- t~44s: Redis DOWN for ~21 s; wave2 must stay Searching (postponed), no offers for it (08:38:57)
+wave1-before-outage | Searching | 6 | 6
+wave2-during-outage | Searching | 6 | 6
+double-booked couriers | 0
+orders with 2 active offers | 0
+
+>>> docker start f05-redis
+
+---- t~66s: Redis back for ~22 s; wave2 must now be getting offers (08:39:19)
+wave1-before-outage | Completed | 5 | 0
+wave1-before-outage | Offering | 1 | 0
+wave2-during-outage | Completed | 5 | 0
+wave2-during-outage | Offering | 1 | 0
+offers | Accepted | 10
+offers | Pending | 2
+double-booked couriers | 0
+orders with 2 active offers | 0
+
+---- Simulator summary
+Done in 75.1 s: sent 1427 points = 19 points/s on average.
+Server answers at stream end: accepted 611, not newer 0; stream errors 63; offline episodes 0.
+Offers: seen 12, accepted 10, rejected 0, ignored 2, withdrawn 0; answers refused (too late) 0, failed 0; offer stream errors 0.
+
+---- Dispatch log: Tracking failures / postponements
+18
+      Tracking GetNearbyCouriers failed with DeadlineExceeded; the search will be retried later
+      Tracking GetNearbyCouriers failed with DeadlineExceeded; the search will be retried later
+---- Dispatch log: unhandled errors
+0
+
+cleaned up

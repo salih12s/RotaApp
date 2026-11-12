@@ -95,11 +95,14 @@ public sealed class MessagingScenario : IAsyncDisposable
         if (startDispatch)
         {
             await scenario.WaitForTopologyAsync("q.dispatch.order-created", cancellationToken);
+            await scenario.WaitForTopologyAsync("q.dispatch.order-status-changed", cancellationToken);
         }
 
         if (startOrders)
         {
             await scenario.WaitForTopologyAsync("q.orders.dispatch-started", cancellationToken);
+            await scenario.WaitForTopologyAsync("q.orders.courier-assigned", cancellationToken);
+            await scenario.WaitForTopologyAsync("q.orders.dispatch-failed", cancellationToken);
         }
 
         return scenario;
@@ -118,6 +121,11 @@ public sealed class MessagingScenario : IAsyncDisposable
         {
             ["Messaging:Enabled"] = "true",
             ["ConnectionStrings:RabbitMq"] = brokerUri,
+
+            // Dispatch (F05): these tests are about messaging, not about searching for couriers. No worker polls the
+            // jobs, and Redis/Tracking addresses only have to parse (nothing connects until a push or search happens).
+            ["Dispatch:WorkersEnabled"] = "false",
+            ["ConnectionStrings:Redis"] = "localhost:1,abortConnect=false",
             ["Messaging:RelayPollInterval"] = "00:00:00.050",
             ["Messaging:ReconnectDelay"] = "00:00:00.300",
         };

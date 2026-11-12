@@ -18,6 +18,10 @@ builder.AddRotaDbContext<OrdersDbContext>(OrdersDbContext.ConnectionName);
 builder.AddRotaMessaging<OrdersDbContext>();
 builder.AddRotaConsumer<OrdersDbContext, DispatchStartedV1, DispatchStartedHandler>(
     queue: "q.orders.dispatch-started", consumerName: "Orders.DispatchStartedConsumer");
+builder.AddRotaConsumer<OrdersDbContext, CourierAssignedV1, CourierAssignedHandler>(
+    queue: "q.orders.courier-assigned", consumerName: "Orders.CourierAssignedConsumer");
+builder.AddRotaConsumer<OrdersDbContext, DispatchFailedV1, DispatchFailedHandler>(
+    queue: "q.orders.dispatch-failed", consumerName: "Orders.DispatchFailedConsumer");
 builder.Services.AddOpenApi();
 builder.Services.AddValidation();
 

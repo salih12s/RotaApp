@@ -12,6 +12,14 @@ public sealed class FleetStats
     private long _streamErrors;
     private long _disconnects;
     private long _probeErrors;
+    private long _offersSeen;
+    private long _offersAccepted;
+    private long _offersRejected;
+    private long _offersIgnored;
+    private long _offersWithdrawn;
+    private long _answersRefused;
+    private long _answersFailed;
+    private long _offerStreamErrors;
 
     public long Sent => Interlocked.Read(ref _sent);
 
@@ -26,6 +34,48 @@ public sealed class FleetStats
     public long Disconnects => Interlocked.Read(ref _disconnects);
 
     public long ProbeErrors => Interlocked.Read(ref _probeErrors);
+
+    public long OffersSeen => Interlocked.Read(ref _offersSeen);
+
+    public long OffersAccepted => Interlocked.Read(ref _offersAccepted);
+
+    public long OffersRejected => Interlocked.Read(ref _offersRejected);
+
+    /// <summary>Offers the courier decided not to answer at all.</summary>
+    public long OffersIgnored => Interlocked.Read(ref _offersIgnored);
+
+    public long OffersWithdrawn => Interlocked.Read(ref _offersWithdrawn);
+
+    /// <summary>Answers Dispatch refused with 409: the offer had already expired or the order was cancelled.</summary>
+    public long AnswersRefused => Interlocked.Read(ref _answersRefused);
+
+    public long AnswersFailed => Interlocked.Read(ref _answersFailed);
+
+    public long OfferStreamErrors => Interlocked.Read(ref _offerStreamErrors);
+
+    public void OfferSeen() => Interlocked.Increment(ref _offersSeen);
+
+    public void OfferIgnored() => Interlocked.Increment(ref _offersIgnored);
+
+    public void OfferWithdrawn() => Interlocked.Increment(ref _offersWithdrawn);
+
+    public void OfferAnswerRefused() => Interlocked.Increment(ref _answersRefused);
+
+    public void OfferAnswerFailed() => Interlocked.Increment(ref _answersFailed);
+
+    public void OfferStreamFailed() => Interlocked.Increment(ref _offerStreamErrors);
+
+    public void OfferAnswered(OfferDecision decision)
+    {
+        if (decision == OfferDecision.Accept)
+        {
+            Interlocked.Increment(ref _offersAccepted);
+        }
+        else
+        {
+            Interlocked.Increment(ref _offersRejected);
+        }
+    }
 
     public void PointSent() => Interlocked.Increment(ref _sent);
 

@@ -11,6 +11,7 @@ catch (Exception ex) when (ex is ArgumentException or FormatException or UriForm
 {
     Console.Error.WriteLine(ex.Message);
     Console.Error.WriteLine("Usage: --couriers 200 --interval 3 [--url http://localhost:5203] [--duration 60] [--disconnect-rate 0.01] [--reorder-rate 0.05] [--seed 1] [--probe-nearby]");
+    Console.Error.WriteLine("Offers (v2): --offers [--dispatch-grpc http://localhost:5202] [--dispatch-http http://localhost:5102] [--accept-rate 0.6] [--reject-rate 0.25] [--response-delay 5]");
     return 2;
 }
 
@@ -57,6 +58,12 @@ Console.WriteLine();
 Console.WriteLine(string.Create(CultureInfo.InvariantCulture,
     $"Done in {seconds:0.#} s: sent {stats.Sent} points = {stats.Sent / seconds:0.#} points/s on average."));
 Console.WriteLine($"Server answers at stream end: accepted {stats.Accepted}, not newer {stats.OutOfOrder}; stream errors {stats.StreamErrors}; offline episodes {stats.Disconnects}.");
+if (options.Offers)
+{
+    Console.WriteLine($"Offers: seen {stats.OffersSeen}, accepted {stats.OffersAccepted}, rejected {stats.OffersRejected}, ignored {stats.OffersIgnored}, withdrawn {stats.OffersWithdrawn}; "
+        + $"answers refused (too late) {stats.AnswersRefused}, failed {stats.AnswersFailed}; offer stream errors {stats.OfferStreamErrors}.");
+}
+
 if (stats.ProbeSummary() is { } probe)
 {
     Console.WriteLine(string.Create(CultureInfo.InvariantCulture,

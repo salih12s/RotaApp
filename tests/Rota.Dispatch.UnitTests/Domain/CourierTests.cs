@@ -148,4 +148,18 @@ public sealed class CourierTests
             _ => throw new ArgumentOutOfRangeException(nameof(action), action, null),
         };
     }
+
+    [Fact]
+    public void Version_CountsOnlySuccessfulTransitions()
+    {
+        var built = new CourierBuilder().InState(CourierState.Available).Build();
+        var courier = built.Courier;
+        var versionBefore = courier.Version;
+
+        courier.AcceptOffer(Guid.CreateVersion7(), TestClock.Start).IsFailure.ShouldBeTrue();
+        courier.Version.ShouldBe(versionBefore, "a rejected action changes nothing");
+
+        courier.EndShift(TestClock.Start).IsSuccess.ShouldBeTrue();
+        courier.Version.ShouldBe(versionBefore + 1);
+    }
 }

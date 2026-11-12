@@ -1,0 +1,15 @@
+== Race koşusu 1 ==
+  total: 4
+  failed: 0
+  succeeded: 4
+  duration: 56s 685ms
+== Race koşusu 2 ==
+  total: 4
+  failed: 0
+  succeeded: 4
+  duration: 53s 038ms
+== Race koşusu 3 ==
+  total: 4
+  failed: 0
+  succeeded: 4
+  duration: 50s 786ms

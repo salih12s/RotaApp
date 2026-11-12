@@ -27,6 +27,10 @@ public enum OfferAction
 /// </summary>
 public sealed class Offer
 {
+#pragma warning disable CS8618 // EF Core materialization only; every property is set from the row.
+    private Offer() { }
+#pragma warning restore CS8618
+
     private Offer(Guid id, Guid orderId, Guid courierId, int distanceMeters, int etaSeconds,
         DateTimeOffset now, DateTimeOffset expiresAt)
     {

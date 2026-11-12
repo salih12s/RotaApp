@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Protobuf Include="Protos\tracking\v1\tracking.proto" GrpcServices="Both" ProtoRoot="Protos" />
+    <Protobuf Include="Protos\dispatch\v1\dispatch.proto" GrpcServices="Both" ProtoRoot="Protos" />
   </ItemGroup>
 
 </Project>

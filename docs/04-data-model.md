@@ -101,7 +101,8 @@ CREATE TABLE couriers (
     current_offer_id  uuid        NULL,
     current_order_id  uuid        NULL,
     shift_started_at  timestamptz NULL,
-    updated_at        timestamptz NOT NULL
+    updated_at        timestamptz NOT NULL,
+    version           int         NOT NULL DEFAULT 0   -- her durum değişiminde +1; CourierStateChanged.v1'in courierVersion'ı (F05)
 );
 CREATE INDEX ix_couriers_state ON couriers (state);
 
@@ -111,6 +112,10 @@ CREATE TABLE dispatch_jobs (
     status            text        NOT NULL,      -- Searching, Offering, Completed, Unassigned, Cancelled
     pickup_lat        double precision NOT NULL,
     pickup_lon        double precision NOT NULL,
+    pickup_address    text        NOT NULL,          -- F05: teklifte kuryeye gösterilir (05 §2 Offer.pickup)
+    dropoff_lat       double precision NOT NULL,     -- F05: aynı gerekçe (Offer.dropoff)
+    dropoff_lon       double precision NOT NULL,
+    dropoff_address   text        NOT NULL,
     offer_attempts    int         NOT NULL DEFAULT 0,
     search_started_at timestamptz NOT NULL,
     next_search_at    timestamptz NULL,          -- aday yoksa yeniden arama zamanı
@@ -136,6 +141,11 @@ CREATE UNIQUE INDEX ux_offers_one_pending_per_courier ON offers (courier_id) WHE
 
 - **I-1 ve I-2 iki katmanda korunur:** koşullu update (uygulama) + kısmi unique indeks (veritabanı). Uygulama kodunda hata olsa bile veritabanı ikinci `Pending` teklifi reddeder.
 - Kısmi indeks (`WHERE status = 'Pending'`) yalnız bekleyen teklifleri içerir; tablo büyüse de zaman aşımı sorgusu küçük bir indekste çalışır.
+- **Durum geçişleri koşullu update'tir** (`UPDATE ... WHERE id = @id AND state = 'Available'`; 0 satır = başkası önce davrandı). İş satırı için koşul `status` **ve** `offer_attempts`'tir (iş kendi başına döngüye girebilir: `Searching → Offering → Searching`, yalnız `status` aynı kalıp bayat okumayı geçirirdi).
+- **Kilit sırası: teklif → iş → kurye.** Birden çok satıra dokunan her akış (kabul, ret, zaman aşımı, iptal tüketicisi, elle atama, teklif verme) kilitleri bu sırayla alır; iki işlem birbirini döngüde bekleyemez (deadlock yok). Teklif verme akışında teklif satırı yenidir (kimse beklemez), sıra iş → kurye'dir.
+- **İş arama kirası:** arama işçisi vadesi gelen işleri `FOR UPDATE SKIP LOCKED` ile alır ve `next_search_at`'i bir kira süresi (30 sn) ileri iter; işçi ölürse kira dolunca iş yeniden vadesi gelmiş olur. Süresi dolan teklifler de `FOR UPDATE SKIP LOCKED` ile alınır.
+- **Bir kurye bir siparişin teklifini bir kez alır:** daha önce o sipariş için teklif almış (ret, zaman aşımı) kurye aday listesinden çıkarılır; "sıradaki aday" gerçekten başkasıdır.
+- **Kurye kaydı:** kimlik sağlayıcı profilleri gelene kadar (F08) kurye ilk `shift/start`'ta kendini kaydeder (`display_name` isteğe bağlı gövdeden ya da `Courier <kimliğin ilk 8 hanesi>`).
 
 ## Tracking (`rota_tracking`)
 
@@ -186,6 +196,8 @@ CREATE UNLOGGED TABLE location_points_staging (LIKE location_points INCLUDING DE
 | Pub/Sub kanalı | Yayınlayan | Abone | İçerik |
 |---|---|---|---|
 | `dsp:courier:{courierId}:offers` | Dispatch (herhangi bir instance) | Kuryenin gRPC akışını tutan Dispatch instance'ı | `{offerId}` — ayrıntı DB'den okunur |
+
+Redis burada yalnız **uyandırma**dır (ADR-001: Redis türev veri). Yayın commit'ten **sonra** (`DbContext.AfterCommit`) ve beklemeden (`FireAndForget`) yapılır; Redis kapalıysa teklif DB'de durur ve akış bir sonraki yoklamada (Redis yokken 1 sn, varken 15 sn'lik kalp atışı turunda) bulur. Akış her uyandığında "şu an bekleyen teklifler" ile "daha önce gösterilenler"i DB'den karşılaştırır; kaybolmuş, geç gelmiş ya da çift bir yayın yanlış teklif gösteremez.
 
 ## Notifications (`rota_notifications`)
 

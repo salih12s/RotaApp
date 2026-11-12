@@ -30,6 +30,8 @@
     <!-- gRPC for Tracking (client streaming) and internal queries; Redis for the live position index. -->
     <PackageVersion Include="Grpc.AspNetCore" Version="2.85.0" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.85.0" />
+    <!-- Dispatch's Tracking client: named/typed clients on HttpClientFactory, retry policy via service config. Apache-2.0, same release train as Grpc.Net.Client. -->
+    <PackageVersion Include="Grpc.Net.ClientFactory" Version="2.85.0" />
     <PackageVersion Include="Grpc.Core.Api" Version="2.85.0" />
     <PackageVersion Include="Grpc.Tools" Version="2.85.0" />
     <PackageVersion Include="Google.Protobuf" Version="3.36.2" />

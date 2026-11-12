@@ -45,6 +45,10 @@ public static class CourierTransitions
 /// </summary>
 public sealed class Courier
 {
+#pragma warning disable CS8618 // EF Core materialization only; every property is set from the row.
+    private Courier() { }
+#pragma warning restore CS8618
+
     private Courier(Guid id, string displayName, DateTimeOffset now)
     {
         Id = id;
@@ -66,6 +70,9 @@ public sealed class Courier
     public DateTimeOffset? ShiftStartedAt { get; private set; }
 
     public DateTimeOffset UpdatedAt { get; private set; }
+
+    /// <summary>Counts state changes; <c>CourierStateChanged.v1</c> carries it so consumers drop stale events.</summary>
+    public int Version { get; private set; }
 
     public static Courier Register(Guid id, string displayName, DateTimeOffset now)
     {
@@ -167,6 +174,7 @@ public sealed class Courier
 
         State = target;
         UpdatedAt = now;
+        Version++;
         return Result.Success();
     }
 

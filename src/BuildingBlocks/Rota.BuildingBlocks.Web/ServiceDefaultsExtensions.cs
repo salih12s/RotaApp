@@ -32,6 +32,9 @@ public static class ServiceDefaultsExtensions
     // Same string as Rota.Tracking.Api's TrackingTelemetry.MeterName.
     private const string TrackingMeterName = "Rota.Tracking";
 
+    // Same string as Rota.Dispatch.Api's DispatchTelemetry.MeterName.
+    private const string DispatchMeterName = "Rota.Dispatch";
+
     public static TBuilder AddRotaServiceDefaults<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder
     {
@@ -97,6 +100,7 @@ public static class ServiceDefaultsExtensions
             .WithMetrics(metrics => metrics
                 .AddMeter(MessagingSourceName)
                 .AddMeter(TrackingMeterName)
+                .AddMeter(DispatchMeterName)
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation())
             .WithTracing(tracing => tracing

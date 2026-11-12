@@ -128,8 +128,13 @@ stateDiagram-v2
 | `Offering` | ret / zaman aşımı (`OfferDeclined`) | `Searching` (sıradaki aday) · 5. teklif de düştüyse `Unassigned` |
 | `Offering` | kabul (`Complete`) | `Completed` |
 | `Searching`, `Offering` | sipariş iptal (`Cancel`) | `Cancelled` |
+| `Searching` | bağımlılık (Tracking) yanıt vermedi (`Postpone`) | `Searching` (20 sn sonra yeniden; **deneme sayısı artmaz**, arama süresi işlemeye devam eder) |
+| `Searching`, `Unassigned` | dispatcher elle atadı (`ManualAssign`) | `Completed` |
+| `Unassigned` | dispatcher yeniden başlattı (`Restart`) | `Searching` (deneme sayısı 0, arama saati yeniden başlar) |
 
-Süreler ve sayılar `DispatchRules` ile yapılandırılır (varsayılanlar 01-prd iş kuralları tablosundan). Dispatcher yeniden aramayı başlatırsa (`Unassigned → Dispatching`) **yeni** bir `DispatchJob` açılır; biten iş geri açılmaz.
+Süreler ve sayılar `DispatchRules` ile yapılandırılır (varsayılanlar 01-prd iş kuralları tablosundan).
+
+> **F05 kararı, Salih onayı bekliyor (belge çelişkisi):** Bu bölümün önceki hâli "dispatcher yeniden başlatırsa **yeni** bir `DispatchJob` açılır; biten iş geri açılmaz" diyordu. `04-data-model.md` ise `dispatch_jobs.order_id`'yi PRIMARY KEY yapar ve `offers.order_id` buna bağlıdır: bir siparişin iki işi olamaz. İkisi birden doğru olamayacağı için F05'te **aynı iş yeniden açılıyor** (`Unassigned → Searching`; eski teklifler `offers` tablosunda tarihçe olarak kalır). "Yeni iş" tercih edilirse `dispatch_jobs`'a `job_id` anahtarı ve `offers` için `job_id` gerekir; bu bir migration ve ADR kararıdır. Elle atama (`ManualAssign`) da `Offering` iken kapalıdır: açık bir teklif varken dispatcher önce iptal ya da bekleme yolunu seçmelidir (`job-not-assignable`).
 
 ## 6. Değişmez kurallar (invariant)
 

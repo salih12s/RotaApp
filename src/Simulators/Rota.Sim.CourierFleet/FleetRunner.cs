@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Net.Client;
+using Rota.Contracts.Dispatch.V1;
 using Rota.Contracts.Tracking.V1;
 
 namespace Rota.Sim.CourierFleet;
@@ -33,6 +34,24 @@ public sealed class FleetRunner(FleetOptions options, FleetStats stats, TimeProv
         if (options.ProbeNearby)
         {
             tasks.Add(ProbeNearbyAsync(new CourierLocationQuery.CourierLocationQueryClient(channel), stop));
+        }
+
+        // Simulator v2: the same couriers also work offers. Dispatch is another service on another port, so it gets its own channel
+        // and its own handlers: a gRPC channel takes over the handler it is given, which can then not serve another channel or a plain HttpClient.
+        using var dispatchHandler = new SocketsHttpHandler
+        {
+            EnableMultipleHttp2Connections = true,
+            PooledConnectionIdleTimeout = Timeout.InfiniteTimeSpan,
+            KeepAlivePingDelay = TimeSpan.FromSeconds(30),
+            KeepAlivePingTimeout = TimeSpan.FromSeconds(20),
+        };
+        using var dispatchChannel = options.Offers ? GrpcChannel.ForAddress(options.DispatchGrpcUrl, new GrpcChannelOptions { HttpHandler = dispatchHandler }) : null;
+        using var dispatchHttp = options.Offers ? new HttpClient { BaseAddress = options.DispatchHttpUrl } : null;
+        if (dispatchChannel is not null && dispatchHttp is not null)
+        {
+            var offers = new CourierOffers.CourierOffersClient(dispatchChannel);
+            var responder = new OfferResponder(options, stats);
+            tasks.AddRange(Enumerable.Range(0, options.Couriers).Select(i => responder.RunCourierAsync(offers, dispatchHttp, i, stop)));
         }
 
         await Task.WhenAll(tasks);

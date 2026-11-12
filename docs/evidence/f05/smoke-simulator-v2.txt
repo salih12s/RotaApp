@@ -1,0 +1,66 @@
+== F05 duman testi (gerçek süreçler: Tracking + Dispatch + Redis + PostgreSQL; simülatör v2, 30 kurye, 60 sn, 25 bekleyen iş) ==
+Komut: dotnet run --project src/Simulators/Rota.Sim.CourierFleet -- --couriers 30 --interval 1 --duration 60 --offers --accept-rate 0.5 --reject-rate 0.2 --response-delay 2
+
+-- Simülatör çıktısı (son satırlar)
+[01:00] sent 1787 (30.1/s now) · offline events 0 · errors 0
+
+Done in 60.1 s: sent 1787 points = 29.7 points/s on average.
+Server answers at stream end: accepted 1787, not newer 0; stream errors 0; offline episodes 0.
+Offers: seen 42, accepted 21, rejected 12, ignored 9, withdrawn 7; answers refused (too late) 0, failed 0; offer stream errors 0.
+
+-- Dispatch veritabanı (SQL)
+ offers_status | count 
+---------------+-------
+ Accepted      |    21
+ Expired       |     7
+ Pending       |     2
+ Rejected      |    12
+(4 rows)
+
+ jobs_status | count 
+-------------+-------
+ Completed   |    21
+ Offering    |     2
+ Searching   |     2
+(3 rows)
+
+ couriers_state | count 
+----------------+-------
+ Available      |     7
+ Offered        |     2
+ OnDelivery     |    21
+(3 rows)
+
+ couriers_with_2_active_offers_or_orders 
+-----------------------------------------
+                                       0
+(1 row)
+
+ orders_with_2_active_offers 
+-----------------------------
+                           0
+(1 row)
+
+ completed_jobs_without_accepted_offer 
+---------------------------------------
+                                     0
+(1 row)
+
+ ondelivery_couriers_without_matching_accepted_offer 
+-----------------------------------------------------
+                                                   0
+(1 row)
+
+          type          | count 
+------------------------+-------
+ CourierAssigned.v1     |    21
+ CourierStateChanged.v1 |   112
+(2 rows)
+
+ max_attempts_per_job 
+----------------------
+                    4
+(1 row)
+
+-- Dispatch günlüğünde hata/istisna satırı:
+0

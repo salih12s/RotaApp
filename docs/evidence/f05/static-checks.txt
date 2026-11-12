@@ -1,0 +1,37 @@
+== FAIL sinyali taramaları (F05) — 2026-11-12 ==
+
+-- 1. Kurye durumu Redis'te mi? (Redis anahtar/değer, hash, GEO, script çağrısı; C# koleksiyonları sayılmaz)
+(yok; aşağıdaki 2. madde Redis'in yalnız Pub/Sub + ping için kullanıldığını listeler)
+
+-- 2. Redis kullanımı yalnız Pub/Sub:
+src/Services/Dispatch/Rota.Dispatch.Api/Features/Offers/CourierOffersService.cs:154:            await redis.GetSubscriber().SubscribeAsync(channel, onPush);
+src/Services/Dispatch/Rota.Dispatch.Api/Features/Offers/CourierOffersService.cs:168:            await redis.GetSubscriber().UnsubscribeAsync(channel, onPush);
+src/Services/Dispatch/Rota.Dispatch.Api/Infrastructure/DispatchRedis.cs:41:            var latency = await redis.GetDatabase().PingAsync();
+src/Services/Dispatch/Rota.Dispatch.Api/Infrastructure/OfferNotifier.cs:23:            await redis.GetSubscriber().PublishAsync(ChannelFor(courierId), offerId.ToString("D"), CommandFlags.FireAndForget);
+
+-- 3. 'Oku-kontrol et-yaz' rezervasyon: kurye/teklif durumunu C#'ta kontrol edip SaveChanges ile yazan yer
+(yok; kurye geçişleri yalnız koşullu UPDATE)
+
+-- 4. Teklif süresi Task.Delay ile bekleniyor mu?
+(yok)
+
+-- 5. Testlerde gerçek 30 sn bekleme (TimeSpan.FromSeconds(30)/Thread.Sleep/Task.Delay >= 1000):
+(yok)
+tests/Rota.Dispatch.IntegrationTests/Offers/OfferStreamTests.cs:234:        await Task.Delay(300, Cancel);
+tests/Rota.Dispatch.IntegrationTests/Support/FakeTrackingServer.cs:89:                await Task.Delay(state.Delay, context.CancellationToken);
+
+-- 6. Saat: DateTime.Now/UtcNow ve SQL now() (Dispatch + Orders consumer'ları)
+src/Services/Dispatch/Rota.Dispatch.Api/Infrastructure/TrackingCourierLocator.cs:42:            var deadline = DateTime.UtcNow + settings.NearbyDeadline;
+(SQL now() yok)
+
+-- 7. Kültüre bağlı ToLower/ToUpper:
+(yok)
+
+-- 8. Yasak paketler (MediatR, AutoMapper, MassTransit, FluentAssertions):
+(yok)
+
+-- 9. Doğrudan RabbitMQ publish (Dispatch):
+(yok; yalnız outbox)
+
+-- 10. Başka servisin DB'sine erişim (Dispatch'te Orders/Tracking DbContext):
+(yok)

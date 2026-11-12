@@ -36,6 +36,7 @@ public static class ErrorCatalog
             ["offer-not-pending"] = (StatusCodes.Status409Conflict, "The offer is no longer pending."),
             ["courier-busy"] = (StatusCodes.Status409Conflict, "The courier is on a delivery."),
             ["courier-not-available"] = (StatusCodes.Status409Conflict, "The courier is not available."),
+            ["invalid-delivery-state"] = (StatusCodes.Status409Conflict, "The webhook delivery is not in a state that allows this operation."),
             ["job-not-assignable"] = (StatusCodes.Status409Conflict, "The order cannot be assigned in its current state."),
             ["delivery-code-locked"] = (StatusCodes.Status409Conflict, "The delivery code is locked after too many wrong attempts."),
             ["out-of-service-area"] = (StatusCodes.Status422UnprocessableEntity, "Pickup and dropoff are too far apart."),

@@ -483,3 +483,6 @@ $RECYCLE.BIN/
 
 # Snapshot candidates awaiting review (see tests/Rota.Contracts.Tests)
 *.received.json
+
+# ASP.NET Data Protection key ring of Notifications (local development)
+data-protection-keys/

@@ -90,6 +90,7 @@ Gateway 2 instance çalıştığında sınırın instance başına değil **topl
 | `duplicate-merchant-order-ref` | 409 | Aynı işletmede aynı `merchantOrderRef` başka bir `Idempotency-Key` ile tekrar gönderildi |
 | `concurrency-conflict` | 409 | Aynı kayda eşzamanlı değişiklik |
 | `offer-not-pending` | 409 | Teklif süresi dolmuş / reddedilmiş / iptal |
+| `invalid-delivery-state` | 409 | Webhook teslimatı bu işleme uygun durumda değil (ör. `Dead` olmayan teslimatı yeniden gönderme); `currentStatus` eklenir |
 | `courier-busy` | 409 | Teslimattayken vardiya kapatma |
 | `courier-not-available` | 409 | Elle atamada kurye müsait değil |
 | `job-not-assignable` | 409 | Sipariş atanabilir durumda değil |

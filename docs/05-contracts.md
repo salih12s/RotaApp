@@ -179,6 +179,24 @@ message Heartbeat { google.protobuf.Timestamp server_time = 1; }
 - **Yarış (R-4):** iptal ile `pickup` aynı anda gelirse ikisi de `Assigned`'ı okur ve ikisi de geçerlidir; `UPDATE ... WHERE xmin = @okunan` yalnız birini geçirir: biri 200, öteki 409. Kaybeden asla 500 almaz, kazananın değişikliği için tam bir `OrderStatusChanged` olayı yazılır.
 - **Olaylar:** `pickup`, `deliver`, `delivery-failed`, `returned` her biri `OrderStatusChanged.v1` yazar (durum değişimiyle aynı transaction'da; `delivery-failed` için `reason` taşınır). `unlock` durum değiştirmez, olay yoktur. `Delivered` ve `Returned` Dispatch'te kuryeyi `Available` yapar (teslimden sonra ≤ 2 sn, testli); `delivery-failed`'da paket hâlâ kuryededir, kurye `returned`'e kadar meşgul kalır.
 
+### Notifications ayrıntıları (F07)
+
+- **`PUT /webhook-subscription`:** gövde `{ "url": "..." }`. İlk çağrıda `secret` (`whsec_…`) **yalnız bu yanıtta** döner; sonraki çağrılarda `null`. URL: https (yalnız Development/test'te http), kimlik bilgisi yok, ≤ 500 karakter; ana makine adı çözümlenir ve **hiçbir** adres özel/iç olmamalı (`10/8`, `172.16/12`, `192.168/16`, `127/8`, `169.254/16`, `100.64/10`, `::1`, `fc00::/7`, `fe80::/10`, IPv4-eşlemeli IPv6, çok noktaya yayın). Aksi 400 `validation-failed`. Bağlantı anında adres **yeniden** denetlenir (DNS rebinding) ve yönlendirme (redirect) izlenmez.
+- **`POST /webhook-subscription/rotate-secret`:** yeni secret'ı bir kez döner; eskisi hemen geçersiz olur (işletme kendi yapılandırmasını günceller). Abonelik yoksa 404.
+- **`GET /webhook-deliveries?status=&limit=&after=`:** yalnız çağıranın teslimatları, yeniden eskiye; `limit` 1–100 (varsayılan 20), `after` = önceki sayfanın `nextCursor`'ı. Geçersiz değer 400.
+- **`POST /webhook-deliveries/{id}/replay`:** yalnız `Dead` teslimat: 202, `Pending`, deneme sayısı 0, hemen vadeli. Başka işletmenin ya da olmayan kayıt 404; `Dead` değilse 409 `invalid-delivery-state` (`currentStatus`). Aynı anda birden çok replay'de biri 202, kalanı 409.
+- **Teslim kuralları:** 7 deneme (ilk anında + 1 sn, 5 sn, 30 sn, 2 dk, 10 dk, 30 dk sonra), yedinci hatada `Dead`. 2xx dışı her cevap, bağlantı hatası ve 10 sn'yi aşan bekleme başarısızdır; yönlendirme başarısızdır ve izlenmez. İşletme başına 4 eşzamanlı istek; 5 ardışık hata → 1 dk o işletmeye istek yok.
+- **Gövdeye `id` olay kimliğidir** (`Rota-Event-Id` başlığıyla aynı): işletme tekrarı bununla ayıklar. İşletme yanıtı geç verirse (zaman aşımı) olay işlenmiş olsa bile yeniden gönderilir; bu yüzden tekrar normaldir. `orderVersion` ile eski sürüm yok sayılır. `courier.displayName`, Dispatch'in `CourierStateChanged` olaylarından kopyalanır; henüz bilinmeyen kurye için `null`.
+- **İşletme tarafı doğrulama örneği (C#):** imza `t=<unix sn>,v1=<hex>`; ham gövde ve `t` ile `HMAC-SHA256(secret, "{t}.{ham gövde}")` hesaplanır, **sabit zamanlı** karşılaştırılır, `t` 5 dakikadan eskiyse reddedilir. Gövde, ayrıştırılıp yeniden yazılmadan **ham bayt olarak** doğrulanmalıdır (boşluk farkı imzayı bozar). Çalışan örnek: `src/Simulators/Rota.Sim.Merchant/WebhookReceiver.cs` (`WebhookVerifier`), `dotnet run --project src/Simulators/Rota.Sim.Merchant -- receive --secret whsec_… --error-rate 0.2`.
+
+```csharp
+var parts = header.Split(',').Select(p => p.Split('=', 2)).ToDictionary(p => p[0], p => p[1]);
+var age = DateTimeOffset.UtcNow - DateTimeOffset.FromUnixTimeSeconds(long.Parse(parts["t"]));
+if (Math.Abs(age.TotalSeconds) > 300) return Results.Unauthorized();                       // replay
+var expected = HMACSHA256.HashData(Encoding.UTF8.GetBytes(secret), Encoding.UTF8.GetBytes($"{parts["t"]}.{rawBody}"));
+if (!CryptographicOperations.FixedTimeEquals(expected, Convert.FromHexString(parts["v1"]))) return Results.Unauthorized();
+```
+
 ### gRPC durum kodları
 
 | Durum | Kod |

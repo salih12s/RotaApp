@@ -11,8 +11,8 @@
 | F04 | Tracking: konum akışı | L | ✅ PASS |
 | F05 | Dispatch: otomatik atama | XL | ✅ PASS |
 | F06 | Teslimat akışı ve iptal kuralları | M | ✅ PASS |
-| F07 | Notifications: güvenilir webhook | M | ⏭️ Sıradaki |
-| F08 | Gateway + Keycloak + yetki | L | Bekliyor |
+| F07 | Notifications: güvenilir webhook | M | ✅ PASS |
+| F08 | Gateway + Keycloak + yetki | L | ⏭️ Sıradaki |
 | F09 | Ops API: GraphQL ve canlı takip | L | Bekliyor |
 | F10 | Gözlemlenebilirlik | M | Bekliyor |
 | F11 | Performans ölçümü ve optimizasyon | L | Bekliyor |
@@ -20,7 +20,7 @@
 | F13 | *(opsiyonel)* Dispatcher harita arayüzü | M | Bekliyor |
 | F14 | *(opsiyonel, koşullu)* Kafka ile yeniden oynatma | M | Bekliyor |
 
-> **Devir notu (2026-11-12, F06 sonu):** F00–F06 bitti (`faz/f06-delivery`, F05'in üstünden açıldı; `main`'e henüz PR yok). Sıradaki **F07** (M, Sonnet yeter, yeni oturumda): Notifications, `OrderStatusChanged` tüketicisi, güvenilir webhook. F07 için hazır olanlar: `OrderStatusChanged.v1` tüm geçişlerde (Dispatching, Assigned, PickedUp, Delivered, DeliveryFailed, Returned, Cancelled) outbox'tan çıkıyor ve şu an `q.rota.unrouted`'da birikiyor (tüketici yok); `MerchantSim` v1 var (webhook alıcısı olarak F07'de genişletilecek). **Açık kararlar (Salih):** F05'ten: yeniden başlatma aynı iş mi yeni iş mi (`02 §5.4` notu), ilk çağrıda 200 ms deadline, Redis kapalıyken Tracking konum alımı. Bilinen açıklar: bayat kurye temizlik işi, konum hız sınırı, DB `/health/ready`, F06 trace ekran görüntüsü (F10). Uçtan uca denemek için betiğin tarifi `docs/evidence/f06/e2e-50-orders.txt`'te (geçici Docker PostgreSQL/Redis/RabbitMQ + 3 servis + 2 simülatör; Orders gizli anahtarları ortam değişkeniyle). Test komutu: `dotnet test RotaApp.slnx` (Docker açık olmalı; 611 test).
+> **Devir notu (2026-11-12, F07 sonu):** F00–F07 bitti (`faz/f07-notifications`, F06'nın üstünden açıldı; `main`'e henüz PR yok; **F07 commit'lenmedi**). Sıradaki **F08** (L, güvenlik: `high` effort; yeni oturumda, Keycloak/YARP/Redis rate limit). F08 için hazır olanlar: tüm servislerde `AddRotaDevAuth` + politika adları (`MerchantOnly`, `CourierOnly`, `DispatcherOnly`, `ServiceOnly`, `CourierOrDispatcher`…) ve sahiplik süzmesi sorguda (404); `DevAuth` Development dışında kayıtlıysa uygulama başlamıyor (kod var, PASS 4'ün testi yazılmadı). F08'de eklenecek: `JwtBearer` (rol claim eşlemesi: `role`, `merchant_id`, `sub`), Keycloak realm (`deploy/keycloak/realm-rota.json`), YARP gateway (REST, gRPC, WebSocket), Redis tabanlı dağıtık rate limit (06 §3), simülatörlerin token alması, `Testcontainers.Keycloak` (yeni paket: lisans/.NET 10 uyumu kontrol edilecek), `Yarp.ReverseProxy` (yeni paket). **Açık kararlar (Salih):** F05'ten: yeniden başlatma aynı iş mi yeni iş mi (`02 §5.4` notu), ilk çağrıda 200 ms deadline, Redis kapalıyken Tracking konum alımı. Bilinen açıklar: bayat kurye temizlik işi, konum hız sınırı, DB `/health/ready`, F06 trace ekran görüntüsü (F10), Notifications'ta abonelik silme ucu yok, bulkhead/devre kesici instance başına. Test komutu: `dotnet test RotaApp.slnx` (Docker açık olmalı; 742 test).
 
 Durum değerleri: `Bekliyor` · `⏭️ Sıradaki` · `🔨 Devam ediyor` · `✅ PASS` · `❌ FAIL (gerekçe)`. Faz kapanınca bu tablo aynı PR'da güncellenir.
 
@@ -350,13 +350,15 @@ dotnet run --project src/Simulators/Rota.Sim.Merchant -- --orders 50
 **Öğrenilecek kavramlar:** HMAC imza, replay koruması, üstel bekleme (exponential backoff), DLQ ve yeniden oynatma, circuit breaker, bulkhead, SSRF, ASP.NET Data Protection (anahtar kalıcılığı), `HttpClientFactory` + typed client + timeout.
 
 **Yapılacaklar**
-- [ ] Abonelik uçları; secret üretimi; Data Protection anahtarlarının **kalıcı** saklanması (yeniden başlatmada secret'lar çözülebilmeli)
-- [ ] URL doğrulama: https + DNS çözümlemesi sonrası özel IP reddi
+- [x] Abonelik uçları; secret üretimi; Data Protection anahtarlarının **kalıcı** saklanması (yeniden başlatmada secret'lar çözülebilmeli)
+- [x] URL doğrulama: https + DNS çözümlemesi sonrası özel IP reddi
 - [x] `OrderStatusChanged` tüketicisi → `webhook_deliveries`
-- [ ] Teslim işçisi: `SKIP LOCKED`, imza, 10 sn timeout, backoff tablosu, `Dead`; işletme başına bulkhead (eşzamanlı 4) ve circuit breaker
-- [ ] DLQ listeleme ve replay uçları
-- [ ] `MerchantSim` webhook alıcısı: imza doğrulama, hata modları (500, timeout, yavaş)
-- [ ] README için örnek "webhook doğrulama" kodu
+- [x] Teslim işçisi: `SKIP LOCKED`, imza, 10 sn timeout, backoff tablosu, `Dead`; işletme başına bulkhead (eşzamanlı 4) ve circuit breaker
+- [x] DLQ listeleme ve replay uçları
+- [x] `MerchantSim` webhook alıcısı: imza doğrulama, hata modları (500, timeout, yavaş)
+- [x] README için örnek "webhook doğrulama" kodu (docs/05)
+
+> **F07 kararları (Salih onayı: faz onayı 2026-11-12; aşağıdakiler uygulama sırasında alındı):** (1) Teslim zamanlaması DB'de, `SKIP LOCKED` + kira (ADR-016). (2) İşçi turu beklemeden yeni satır alır: bulkhead tek başına yetmiyordu, yavaş bir işletme turları tutuyordu (B'nin p95'i 13,2 sn). (3) Bulkhead (4) ve devre kesici (5 hata / 1 dk) bellekte, instance başına; kendi küçük sınıflarımız, Polly paketi eklenmedi. (4) URL SSRF denetimi kayıtta (DNS dahil) **ve** bağlantıda; redirect izlenmez. (5) Data Protection anahtarları diskte (`Notifications:KeyDirectory`); kayıpta teslimat görünür biçimde başarısız olur. (6) `courier.displayName` Dispatch olaylarından kopyalanan `courier_names` tablosundan. (7) Gövdedeki `id` olay kimliği. Kanıt: `docs/evidence/f07/`.
 
 **PASS kriterleri**
 1. **R-9:** Alıcı 5 dk kapalı → açılınca bütün olaylar teslim; tekrarlar `id` ile ayıklanabiliyor.

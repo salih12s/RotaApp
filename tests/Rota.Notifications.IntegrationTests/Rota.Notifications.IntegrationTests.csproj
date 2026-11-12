@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Notifications against a real PostgreSQL (Testcontainers) and a real HTTP receiver playing the merchant: Docker must be running. -->
+
+  <PropertyGroup>
+    <!-- xunit.v3 test projects are executables. -->
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Shouldly" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Services\Notifications\Rota.Notifications.Api\Rota.Notifications.Api.csproj" />
+    <!-- The independent receiving side (signature verification) lives in the merchant simulator. -->
+    <ProjectReference Include="..\..\src\Simulators\Rota.Sim.Merchant\Rota.Sim.Merchant.csproj" />
+    <ProjectReference Include="..\Rota.TestKit\Rota.TestKit.csproj" />
+  </ItemGroup>
+
+</Project>

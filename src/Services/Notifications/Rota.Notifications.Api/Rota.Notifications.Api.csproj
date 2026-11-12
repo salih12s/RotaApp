@@ -2,10 +2,16 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <!-- Design-time only (dotnet ef); never shipped with the service. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\BuildingBlocks\Rota.BuildingBlocks.Web\Rota.BuildingBlocks.Web.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Rota.BuildingBlocks.Primitives\Rota.BuildingBlocks.Primitives.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Rota.BuildingBlocks.Persistence\Rota.BuildingBlocks.Persistence.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Rota.BuildingBlocks.Messaging\Rota.BuildingBlocks.Messaging.csproj" />
+    <ProjectReference Include="..\..\..\Contracts\Rota.Contracts.Events\Rota.Contracts.Events.csproj" />
   </ItemGroup>
 
 </Project>

@@ -4,6 +4,31 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Rota.Sim.Merchant;
 
+// "receive" mode: be the merchant's webhook endpoint (docs/05 §4) instead of creating orders.
+if (args.Length > 0 && string.Equals(args[0], "receive", StringComparison.Ordinal))
+{
+    ReceiverOptions receiver;
+    try
+    {
+        receiver = ReceiverOptions.Parse(args[1..]);
+    }
+    catch (Exception ex) when (ex is ArgumentException or FormatException)
+    {
+        await Console.Error.WriteLineAsync(ex.Message);
+        await Console.Error.WriteLineAsync("Usage: receive --secret whsec_... [--port 5301] [--error-rate 0.2] [--delay-ms 0] [--seed 1]");
+        return 2;
+    }
+
+    using var stopReceiving = new CancellationTokenSource();
+    Console.CancelKeyPress += (_, e) =>
+    {
+        e.Cancel = true;
+        stopReceiving.Cancel();
+    };
+    await new WebhookReceiver(receiver, TimeProvider.System).RunAsync(stopReceiving.Token);
+    return 0;
+}
+
 MerchantOptions options;
 try
 {

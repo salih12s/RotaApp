@@ -36,6 +36,8 @@
     <Project Path="tests/Rota.Contracts.Tests/Rota.Contracts.Tests.csproj" />
     <Project Path="tests/Rota.Dispatch.IntegrationTests/Rota.Dispatch.IntegrationTests.csproj" />
     <Project Path="tests/Rota.Dispatch.UnitTests/Rota.Dispatch.UnitTests.csproj" />
+    <Project Path="tests/Rota.Notifications.IntegrationTests/Rota.Notifications.IntegrationTests.csproj" />
+    <Project Path="tests/Rota.Notifications.UnitTests/Rota.Notifications.UnitTests.csproj" />
     <Project Path="tests/Rota.Orders.IntegrationTests/Rota.Orders.IntegrationTests.csproj" />
     <Project Path="tests/Rota.Orders.UnitTests/Rota.Orders.UnitTests.csproj" />
     <Project Path="tests/Rota.TestKit/Rota.TestKit.csproj" />

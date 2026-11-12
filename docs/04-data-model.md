@@ -228,7 +228,18 @@ CREATE TABLE webhook_deliveries (
 );
 CREATE INDEX ix_deliveries_due ON webhook_deliveries (next_attempt_at) WHERE status = 'Pending';
 CREATE INDEX ix_deliveries_dead ON webhook_deliveries (merchant_id, created_at DESC) WHERE status = 'Dead';
+
+-- F07: kurye adının kendi kopyası (veri sahipliği: Dispatch'in tablosuna dokunulmaz, CourierStateChanged.v1'den beslenir)
+CREATE TABLE courier_names (
+    courier_id    uuid PRIMARY KEY,
+    display_name  text NOT NULL,
+    version       int  NOT NULL        -- Dispatch'in couriers.version'ı; eski olay yeni adı ezmez
+);
 ```
+
+- **Teslim zamanlaması DB'dedir** (ADR-016): işçi vadesi gelen satırı `FOR UPDATE SKIP LOCKED` ile alır ve `next_attempt_at`'i bir **kira** (30 sn, zaman aşımından uzun) ileri iter; sonuç `WHERE status = 'Pending'` koşullu UPDATE ile yazılır. Bir turda işletme başına en çok 8 satır alınır (tek işletmenin birikimi tüm turu doldurmasın).
+- **Bulkhead ve devre kesici bellekte, instance başınadır:** işletme başına 4 eşzamanlı istek; yuva yoksa satır sayılmadan 1 sn sonraya bırakılır (deneme sayısı artmaz). 5 ardışık hata → 1 dk o işletmeye istek yok, satırlar açılma anına ertelenir. Birden çok instance'ta sınır instance başınadır (toplam 4×N); bu bilinçli bir sadeleştirme.
+- **Secret şifrelemesi:** `secret_protected`, ASP.NET Data Protection ile; anahtar halkası diskte (`Notifications:KeyDirectory`, containerda paylaşılan volume). Anahtar kaybolursa secret'lar okunamaz; teslimat sessizce yanlış imzalamak yerine görünür biçimde başarısız olur (`last_error`).
 
 ## Ops API (`rota_ops`) — okuma modeli
 

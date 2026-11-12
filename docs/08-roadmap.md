@@ -10,8 +10,8 @@
 | F03 | Güvenilir mesajlaşma (Outbox/Inbox) | L | ✅ PASS |
 | F04 | Tracking: konum akışı | L | ✅ PASS |
 | F05 | Dispatch: otomatik atama | XL | ✅ PASS |
-| F06 | Teslimat akışı ve iptal kuralları | M | ⏭️ Sıradaki |
-| F07 | Notifications: güvenilir webhook | M | Bekliyor |
+| F06 | Teslimat akışı ve iptal kuralları | M | ✅ PASS |
+| F07 | Notifications: güvenilir webhook | M | ⏭️ Sıradaki |
 | F08 | Gateway + Keycloak + yetki | L | Bekliyor |
 | F09 | Ops API: GraphQL ve canlı takip | L | Bekliyor |
 | F10 | Gözlemlenebilirlik | M | Bekliyor |
@@ -20,7 +20,7 @@
 | F13 | *(opsiyonel)* Dispatcher harita arayüzü | M | Bekliyor |
 | F14 | *(opsiyonel, koşullu)* Kafka ile yeniden oynatma | M | Bekliyor |
 
-> **Devir notu (2026-11-12, F05 sonu):** F00–F05 bitti ve commit'li (`faz/f05-dispatch`, F04'ün üstünden açıldı; `main`'e henüz PR yok). Sıradaki **F06** (M, Sonnet yeter, yeni oturumda). F06 için hazır olanlar: Dispatch'te kurye `OnDelivery`'den yalnız Orders'ın `OrderStatusChanged` (`Delivered`/`Returned`/`Cancelled`) olayıyla çıkıyor (testli); `Courier.FinishDelivery` etkin. **Açık karar (Salih):** `02 §5.4` ("yeniden başlatınca yeni iş") ile `04` (`order_id` PK) çelişiyordu, F05'te aynı iş yeniden açılıyor (`Unassigned → Searching`); ayrıntı `02 §5.4` notunda. Bilinen açıklar: bayat kurye temizlik işi, konum hız sınırı, DB `/health/ready` kontrolü (F04'ten), ilk aramalarda 200 ms deadline soğuk başlangıçta aşılabiliyor, Redis kapalıyken Tracking konum alımı hata veriyor (bkz. `docs/evidence/f05/README.md`). Yerelde servis çalıştırmak için PostgreSQL port çakışması (5432) ve user-secrets anahtarları gerekir (bkz. `docs/evidence/f02/README.md`); Dispatch yerelde HTTP `5102`, gRPC `5202`. Test komutu: `dotnet test RotaApp.slnx` (Docker açık olmalı; 552 test).
+> **Devir notu (2026-11-12, F06 sonu):** F00–F06 bitti (`faz/f06-delivery`, F05'in üstünden açıldı; `main`'e henüz PR yok). Sıradaki **F07** (M, Sonnet yeter, yeni oturumda): Notifications, `OrderStatusChanged` tüketicisi, güvenilir webhook. F07 için hazır olanlar: `OrderStatusChanged.v1` tüm geçişlerde (Dispatching, Assigned, PickedUp, Delivered, DeliveryFailed, Returned, Cancelled) outbox'tan çıkıyor ve şu an `q.rota.unrouted`'da birikiyor (tüketici yok); `MerchantSim` v1 var (webhook alıcısı olarak F07'de genişletilecek). **Açık kararlar (Salih):** F05'ten: yeniden başlatma aynı iş mi yeni iş mi (`02 §5.4` notu), ilk çağrıda 200 ms deadline, Redis kapalıyken Tracking konum alımı. Bilinen açıklar: bayat kurye temizlik işi, konum hız sınırı, DB `/health/ready`, F06 trace ekran görüntüsü (F10). Uçtan uca denemek için betiğin tarifi `docs/evidence/f06/e2e-50-orders.txt`'te (geçici Docker PostgreSQL/Redis/RabbitMQ + 3 servis + 2 simülatör; Orders gizli anahtarları ortam değişkeniyle). Test komutu: `dotnet test RotaApp.slnx` (Docker açık olmalı; 611 test).
 
 Durum değerleri: `Bekliyor` · `⏭️ Sıradaki` · `🔨 Devam ediyor` · `✅ PASS` · `❌ FAIL (gerekçe)`. Faz kapanınca bu tablo aynı PR'da güncellenir.
 
@@ -317,12 +317,14 @@ dotnet test tests/Rota.Dispatch.IntegrationTests --filter Category=Race
 **Öğrenilecek kavramlar:** Kaynak bazlı yetkilendirme (atanmış kurye), optimistic concurrency yarışı, deneme kilidi, nihai tutarlılık senaryoları.
 
 **Yapılacaklar**
-- [ ] Orders kurye uçları: `pickup`, `deliver`, `delivery-failed`, `returned`; dispatcher `delivery-code/unlock`
-- [ ] Atanmış kurye kontrolü (`assigned_courier_id`, `CourierAssigned` olayından)
-- [ ] Atanmış siparişin iptali → Dispatch kuryeyi serbest bırakıyor
-- [ ] `CourierFleetSim` v3: kabul ettiği siparişe gider, teslim alır, kodu girer (bazen yanlış)
-- [ ] `MerchantSim` v1: sipariş üretir, teslim kodunu simülatöre iletir
-- [ ] Uçtan uca manuel senaryo: 50 sipariş, simülatörlerle
+- [x] Orders kurye uçları: `pickup`, `deliver`, `delivery-failed`, `returned`; dispatcher `delivery-code/unlock`
+- [x] Atanmış kurye kontrolü (`assigned_courier_id`, `CourierAssigned` olayından)
+- [x] Atanmış siparişin iptali → Dispatch kuryeyi serbest bırakıyor
+- [x] `CourierFleetSim` v3: kabul ettiği siparişe gider, teslim alır, kodu girer (bazen yanlış)
+- [x] `MerchantSim` v1: sipariş üretir, teslim kodunu simülatöre iletir
+- [x] Uçtan uca manuel senaryo: 50 sipariş, simülatörlerle
+
+> **F06 kararları (Salih onayı: faz onayı 2026-11-12; aşağıdakiler uygulama sırasında alındı):** (1) Kurye yalnız kendine atanmış siparişi görür (sorguda süzme, `VisibleTo`): başkasının ya da henüz atanmamış sipariş 404. (2) **Nihai tutarlılık kabul edildi:** kabulden hemen sonra `pickup` kısa süre 404 verebilir (Orders atamayı olaydan öğrenir); istemci yeniden dener (`05` Teslimat uçları). (3) Yanlış kod da kaydedilir (yoksa sınır dolmaz); paralel tahminlerde `xmin` koşulu fazladan deneme vermez. (4) Bozuk biçimli kod ve `PickedUp` öncesi `deliver` deneme yakmaz. (5) `delivery-failed` sonrası kurye `returned`'e kadar meşgul. (6) Dispatch'in Redis bağlantısı açılışta arka planda ısıtılır, zaman aşımı 1 sn (ilk mesaj bloklanıyordu). (7) Simülatörler kodu dosyayla (`codes.jsonl`) aktarır. Kanıt: `docs/evidence/f06/`.
 
 **PASS kriterleri**
 1. **R-4:** İptal ve teslim alma aynı anda → biri 200, diğeri 409 (20 tur).

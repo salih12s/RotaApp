@@ -1,0 +1,82 @@
+== F06 uçtan uca manuel senaryo (2026-11-12): gerçek Orders + Dispatch + Tracking + RabbitMQ + Redis + PostgreSQL ==
+Komutlar (betik: 3 servis + geçici Docker altyapısı, sonra):
+  dotnet run --project src/Simulators/Rota.Sim.CourierFleet -- --couriers 20 --interval 1 --duration 200 --offers --accept-rate 0.8 --reject-rate 0.1 --response-delay 2 --codes-file codes.jsonl --travel 2 --mistype-rate 0.2 --fail-rate 0.1
+  dotnet run --project src/Simulators/Rota.Sim.Merchant -- --orders 50 --merchants 3 --interval 0.5 --cancel-rate 0.1 --timeout 240 --codes-file codes.jsonl
+
+rabbitmq: AMQP port open
+services: orders=200 dispatch=200 tracking=200
+
+== MerchantSim ==
+Merchants: 50 orders from 3 merchants, one every 0.5 s, to http://localhost:5101/; codes go to C:/Users/salih/AppData/Local/Temp/f06e2e/codes.jsonl
+Created 50 orders (0 failed) in 26 s.
+
+Final statuses:
+  Cancelled      3
+  Delivered      41
+  Returned       6
+Cancel requests: 5 sent, 3 accepted, 2 too late (409).
+No order is stuck.
+merchant sim exit: 0
+
+== Orders DB: final status per order ==
+  status   | count 
+-----------+-------
+ Cancelled |     3
+ Delivered |    41
+ Returned  |     6
+(3 rows)
+
+== orders NOT in a terminal status (must be empty) ==
+ id | status 
+----+--------
+(0 rows)
+
+== wrong delivery codes counted (attempts > 0) / locked ==
+9|0
+== status history per order walks only legal steps? (orders with a history gap) ==
+0
+
+== Dispatch DB ==
+  status   | count 
+-----------+-------
+ Cancelled |     1
+ Completed |    49
+(2 rows)
+
+   state   | count 
+-----------+-------
+ Available |    20
+(1 row)
+
+  status   | count 
+-----------+-------
+ Accepted  |    49
+ Cancelled |     1
+ Expired   |     4
+ Rejected  |     7
+(4 rows)
+
+== Dispatch invariant: one active offer per courier / per order (Pending only; Accepted piles up over time, that is normal) ==
+0
+0
+== Orders: couriers whose assigned-order windows overlap (must be 0) ==
+0
+== couriers still OnDelivery / Offered (must be 0 once all orders ended) ==
+0
+
+== RabbitMQ: queues with messages / dead letters ==
+q.rota.unrouted	191
+(only queues with messages > 0 are listed; none = empty)
+
+== Fleet simulator summary (the simulator ends itself after its --duration) ==
+Done in 200 s: sent 3964 points = 19.8 points/s on average.
+Server answers at stream end: accepted 3964, not newer 0; stream errors 0; offline episodes 0.
+Offers: seen 61, accepted 49, rejected 7, ignored 5, withdrawn 5; answers refused (too late) 0, failed 0; offer stream errors 0.
+Deliveries: picked up 47, delivered 41, mistyped codes rejected 9, delivery failed 6 -> returned 6; code never arrived 0, pickup retries 45, other call failures 2.
+
+== Service logs: unhandled errors (orders / dispatch / tracking) ==
+orders: 0
+dispatch: 0
+tracking: 0
+
+E2E DONE

@@ -1,0 +1,14 @@
+dotnet test RotaApp.slnx  (2026-11-12, F06 son hâl; Docker Desktop açık)
+Rota.Contracts.Tests\bin\Debug\net10.0\Rota.Contracts.Tests.dll (net10.0|x64) passed (1s 502ms)
+Rota.Dispatch.IntegrationTests\bin\Debug\net10.0\Rota.Dispatch.IntegrationTests.dll (net10.0|x64) passed (39s 523ms)
+Rota.Dispatch.UnitTests\bin\Debug\net10.0\Rota.Dispatch.UnitTests.dll (net10.0|x64) passed (4s 100ms)
+Rota.Orders.IntegrationTests\bin\Debug\net10.0\Rota.Orders.IntegrationTests.dll (net10.0|x64) passed (48s 142ms)
+Rota.Orders.UnitTests\bin\Debug\net10.0\Rota.Orders.UnitTests.dll (net10.0|x64) passed (3s 851ms)
+Rota.Tracking.IntegrationTests\bin\Debug\net10.0\Rota.Tracking.IntegrationTests.dll (net10.0|x64) passed (18s 644ms)
+Rota.Tracking.UnitTests\bin\Debug\net10.0\Rota.Tracking.UnitTests.dll (net10.0|x64) passed (2s 710ms)
+  total: 611
+  failed: 0
+  succeeded: 611
+  skipped: 0
+  duration: 48s 483ms
+exit=0

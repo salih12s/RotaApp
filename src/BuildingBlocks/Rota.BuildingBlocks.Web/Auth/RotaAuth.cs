@@ -39,6 +39,7 @@ public static class RotaPolicies
     public const string DispatcherOnly = nameof(DispatcherOnly);
     public const string ServiceOnly = nameof(ServiceOnly);
     public const string MerchantOrDispatcher = nameof(MerchantOrDispatcher);
+    public const string CourierOrDispatcher = nameof(CourierOrDispatcher);
     public const string AnyActor = nameof(AnyActor);
 }
 
@@ -68,6 +69,7 @@ public static class RotaAuthExtensions
             .AddPolicy(RotaPolicies.DispatcherOnly, p => p.RequireRole(RotaRoles.Dispatcher))
             .AddPolicy(RotaPolicies.ServiceOnly, p => p.RequireRole(RotaRoles.Service))
             .AddPolicy(RotaPolicies.MerchantOrDispatcher, p => p.RequireRole(RotaRoles.Merchant, RotaRoles.Dispatcher))
+            .AddPolicy(RotaPolicies.CourierOrDispatcher, p => p.RequireRole(RotaRoles.Courier, RotaRoles.Dispatcher))
             .AddPolicy(RotaPolicies.AnyActor, p => p.RequireRole(RotaRoles.Merchant, RotaRoles.Courier, RotaRoles.Dispatcher));
 
         return builder;

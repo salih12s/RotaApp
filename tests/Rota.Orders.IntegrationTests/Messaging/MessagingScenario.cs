@@ -149,7 +149,11 @@ public sealed class MessagingScenario : IAsyncDisposable
     public DispatchDbContext DispatchDb() => CreateDispatchDb(DispatchConnection);
 
     /// <summary>Creates an order through the real HTTP endpoint, as a merchant would.</summary>
-    public async Task<Guid> CreateOrderAsync(string merchantId, string? traceParent, CancellationToken cancellationToken)
+    public async Task<Guid> CreateOrderAsync(string merchantId, string? traceParent, CancellationToken cancellationToken) =>
+        (await CreateOrderWithCodeAsync(merchantId, traceParent, cancellationToken)).OrderId;
+
+    /// <summary>Same, but also returns the delivery code (the merchant's only chance to see it) for tests that deliver.</summary>
+    public async Task<(Guid OrderId, string DeliveryCode)> CreateOrderWithCodeAsync(string merchantId, string? traceParent, CancellationToken cancellationToken)
     {
         using var client = Orders!.CreateClientAs(DevUsers.Merchant(merchantId));
         using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/orders") { Content = JsonContent.Create(OrderRequests.Valid()) };
@@ -161,7 +165,8 @@ public sealed class MessagingScenario : IAsyncDisposable
 
         using var response = await client.SendAsync(request, cancellationToken);
         response.StatusCode.ShouldBe(HttpStatusCode.Created, await response.Content.ReadAsStringAsync(cancellationToken));
-        return (await response.Content.ReadFromJsonAsync<CreateOrderResponse>(cancellationToken))!.Id;
+        var created = (await response.Content.ReadFromJsonAsync<CreateOrderResponse>(cancellationToken))!;
+        return (created.Id, created.DeliveryCode);
     }
 
     public async Task<OrderStatus> OrderStatusAsync(Guid orderId, CancellationToken cancellationToken)

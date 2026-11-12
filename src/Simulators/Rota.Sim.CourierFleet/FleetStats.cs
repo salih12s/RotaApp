@@ -20,6 +20,14 @@ public sealed class FleetStats
     private long _answersRefused;
     private long _answersFailed;
     private long _offerStreamErrors;
+    private long _pickedUp;
+    private long _delivered;
+    private long _wrongCodesRejected;
+    private long _deliveryFailed;
+    private long _returned;
+    private long _codeMissing;
+    private long _deliveryCallsFailed;
+    private long _pickupRetries;
 
     public long Sent => Interlocked.Read(ref _sent);
 
@@ -52,6 +60,41 @@ public sealed class FleetStats
     public long AnswersFailed => Interlocked.Read(ref _answersFailed);
 
     public long OfferStreamErrors => Interlocked.Read(ref _offerStreamErrors);
+
+    public long ParcelsPickedUp => Interlocked.Read(ref _pickedUp);
+
+    public long ParcelsDelivered => Interlocked.Read(ref _delivered);
+
+    /// <summary>Deliberately mistyped codes the server answered with 400 (the lock counter doing its job).</summary>
+    public long WrongCodesRejected => Interlocked.Read(ref _wrongCodesRejected);
+
+    public long DeliveriesFailed => Interlocked.Read(ref _deliveryFailed);
+
+    public long ParcelsReturned => Interlocked.Read(ref _returned);
+
+    /// <summary>Orders whose code never reached the courier (the parcel stays out).</summary>
+    public long CodesMissing => Interlocked.Read(ref _codeMissing);
+
+    public long DeliveryCallsFailed => Interlocked.Read(ref _deliveryCallsFailed);
+
+    /// <summary>Times a pickup was asked again because Orders had not yet recorded the assignment (eventual consistency).</summary>
+    public long PickupRetries => Interlocked.Read(ref _pickupRetries);
+
+    public void PickupRetried() => Interlocked.Increment(ref _pickupRetries);
+
+    public void ParcelPickedUp() => Interlocked.Increment(ref _pickedUp);
+
+    public void ParcelDelivered() => Interlocked.Increment(ref _delivered);
+
+    public void WrongCodeRejected() => Interlocked.Increment(ref _wrongCodesRejected);
+
+    public void DeliveryFailed() => Interlocked.Increment(ref _deliveryFailed);
+
+    public void ParcelReturned() => Interlocked.Increment(ref _returned);
+
+    public void CodeMissing() => Interlocked.Increment(ref _codeMissing);
+
+    public void DeliveryCallFailed() => Interlocked.Increment(ref _deliveryCallsFailed);
 
     public void OfferSeen() => Interlocked.Increment(ref _offersSeen);
 

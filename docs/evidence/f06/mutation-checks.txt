@@ -1,0 +1,9 @@
+== Mutasyon kontrolü (R-4): kodu boz, test yakalıyor mu? ==
+
+M1: Teslimat uçlarındaki kayıt (TrySaveAsync) çakışmada "veritabanı değerleriyle yenile ve kör tekrar kaydet" yaptı
+    (yani xmin koşulu fiilen devre dışı: son yazan kazanır; klasik "retry on conflict" hatası).
+    sonuç: R4 ilk turda kırıldı: "round 1: cancel=OK, pickup=OK" (iki taraf da 200 aldı: kayıp güncelleme).
+
+Not (dürüstlük): İki ilk deneme geçersizdi. xmin'i modelden çıkarmak ya da IsConcurrencyToken(false) yapmak EF modelini değiştirir;
+test fixture'ı "PendingModelChangesWarning" ile açılışta çöktü (0 ms), yani yarışı değil kurulumu bozdu. Bu yüzden modeli değiştirmeyen
+M1 seçildi. Mutasyondan sonra dosya yedekle birebir karşılaştırıldı (diff boş).

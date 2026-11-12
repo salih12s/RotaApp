@@ -27,7 +27,7 @@ public sealed class DispatchFlowTests(OrdersDatabaseFixture databases, BrokerFix
     public async Task ManualAssignment_InDispatch_MakesTheOrderAssignedInOrders()
     {
         await using var scenario = await StartBothAsync();
-        var (orderId, courierId, _) = await CreateOrderAndAssignAsync(scenario);
+        var (orderId, courierId, _, _) = await CreateOrderAndAssignAsync(scenario);
 
         await using var db = scenario.OrdersDb();
         var order = await db.Orders.AsNoTracking().SingleAsync(o => o.Id == orderId, Token);
@@ -39,7 +39,7 @@ public sealed class DispatchFlowTests(OrdersDatabaseFixture databases, BrokerFix
     public async Task CancellingTheOrder_InOrders_FreesTheCourierInDispatch()
     {
         await using var scenario = await StartBothAsync();
-        var (orderId, courierId, merchantId) = await CreateOrderAndAssignAsync(scenario);
+        var (orderId, courierId, merchantId, _) = await CreateOrderAndAssignAsync(scenario);
 
         using var merchant = scenario.Orders!.CreateClientAs(DevUsers.Merchant(merchantId));
         var cancel = await merchant.PostAsJsonAsync($"/api/v1/orders/{orderId}/cancel", new { reason = "customer changed mind" }, Token);
@@ -52,6 +52,43 @@ public sealed class DispatchFlowTests(OrdersDatabaseFixture databases, BrokerFix
         }, _wait, "courier is Available again after the order was cancelled", Token);
         await using var check = scenario.DispatchDb();
         (await check.Couriers.AsNoTracking().SingleAsync(c => c.Id == courierId, Token)).CurrentOrderId.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task Delivery_InOrders_FreesTheCourierInDispatchWithinTwoSeconds()
+    {
+        // F06 PASS 4: order Delivered -> OrderStatusChanged -> Dispatch consumer -> courier Available.
+        await using var scenario = await StartBothAsync();
+        var (orderId, courierId, _, code) = await CreateOrderAndAssignAsync(scenario);
+        using var courier = scenario.Orders!.CreateClientAs(DevUsers.Courier(courierId));
+        (await courier.PostAsync($"/api/v1/orders/{orderId}/pickup", content: null, Token)).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await CourierStateAsync(scenario, courierId)).ShouldBe(CourierState.OnDelivery, "still busy until delivered");
+
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        var delivered = await courier.PostAsJsonAsync($"/api/v1/orders/{orderId}/deliver", new { code }, Token);
+        delivered.StatusCode.ShouldBe(HttpStatusCode.OK);
+        await Eventually.UntilAsync(async () => await CourierStateAsync(scenario, courierId) == CourierState.Available,
+            TimeSpan.FromSeconds(2), "courier is Available within 2 s of the delivery", Token);
+        clock.Stop();
+
+        clock.Elapsed.ShouldBeLessThan(TimeSpan.FromSeconds(2), clock.Elapsed.ToString());
+    }
+
+    [Fact]
+    public async Task FailedDeliveryAndReturn_FreeTheCourierOnlyWhenTheParcelIsReturned()
+    {
+        await using var scenario = await StartBothAsync();
+        var (orderId, courierId, _, _) = await CreateOrderAndAssignAsync(scenario);
+        using var courier = scenario.Orders!.CreateClientAs(DevUsers.Courier(courierId));
+        await courier.PostAsync($"/api/v1/orders/{orderId}/pickup", content: null, Token);
+        (await courier.PostAsJsonAsync($"/api/v1/orders/{orderId}/delivery-failed", new { reason = "customer absent" }, Token)).StatusCode.ShouldBe(HttpStatusCode.OK);
+        await WaitForOrderAsync(scenario, orderId, OrderStatus.DeliveryFailed);
+        (await CourierStateAsync(scenario, courierId)).ShouldBe(CourierState.OnDelivery, "the parcel is still with the courier");
+
+        (await courier.PostAsync($"/api/v1/orders/{orderId}/returned", content: null, Token)).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        await Eventually.UntilAsync(async () => await CourierStateAsync(scenario, courierId) == CourierState.Available,
+            TimeSpan.FromSeconds(5), "courier is Available after the parcel was returned", Token);
     }
 
     [Fact]
@@ -101,10 +138,10 @@ public sealed class DispatchFlowTests(OrdersDatabaseFixture databases, BrokerFix
         await MessagingScenario.StartAsync(databases, await brokers.GetAsync(), startOrders: true, startDispatch: true, ScenarioTimings.Fast, Token);
 
     /// <summary>Order created → Dispatch has a job → a courier starts a shift → a dispatcher assigns them → Orders says Assigned.</summary>
-    private static async Task<(Guid OrderId, Guid CourierId, string MerchantId)> CreateOrderAndAssignAsync(MessagingScenario scenario)
+    private static async Task<(Guid OrderId, Guid CourierId, string MerchantId, string DeliveryCode)> CreateOrderAndAssignAsync(MessagingScenario scenario)
     {
         var merchantId = DevUsers.NewMerchantId();
-        var orderId = await scenario.CreateOrderAsync(merchantId, null, Token);
+        var (orderId, code) = await scenario.CreateOrderWithCodeAsync(merchantId, null, Token);
         await WaitForOrderAsync(scenario, orderId, OrderStatus.Dispatching); // proves OrderCreated reached Dispatch and DispatchStarted came back
 
         var courierId = Guid.CreateVersion7();
@@ -116,7 +153,13 @@ public sealed class DispatchFlowTests(OrdersDatabaseFixture databases, BrokerFix
         assign.StatusCode.ShouldBe(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync(Token));
 
         await WaitForOrderAsync(scenario, orderId, OrderStatus.Assigned);
-        return (orderId, courierId, merchantId);
+        return (orderId, courierId, merchantId, code);
+    }
+
+    private static async Task<CourierState> CourierStateAsync(MessagingScenario scenario, Guid courierId)
+    {
+        await using var db = scenario.DispatchDb();
+        return await db.Couriers.AsNoTracking().Where(c => c.Id == courierId).Select(c => c.State).SingleAsync(Token);
     }
 
     private static Task WaitForOrderAsync(MessagingScenario scenario, Guid orderId, OrderStatus expected) =>

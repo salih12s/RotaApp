@@ -1,0 +1,12 @@
+== Statik kontroller (F06) ==
+-- Teslim kodu düz metin/log: 'code' alanının loga/olaya yazıldığı yer
+(Delivery/ altında log çağrısı yok)
+-- Olayda teslim kodu var mı (OrderStatusChangedV1 alanları)
+(yok)
+-- Kurye kimliği istek gövdesinden mi? (courierId alanı Delivery isteklerinde)
+139:                order.AssignedCourierId, reason, now, order.Version),
+(kimlik token'dan: user.ToActor() / VisibleTo(user))
+-- Zaman: DateTime.Now/UtcNow
+(yok)
+-- Delivery uçlarında Task.Delay/Thread.Sleep
+(yok)

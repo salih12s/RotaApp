@@ -12,6 +12,7 @@ catch (Exception ex) when (ex is ArgumentException or FormatException or UriForm
     Console.Error.WriteLine(ex.Message);
     Console.Error.WriteLine("Usage: --couriers 200 --interval 3 [--url http://localhost:5203] [--duration 60] [--disconnect-rate 0.01] [--reorder-rate 0.05] [--seed 1] [--probe-nearby]");
     Console.Error.WriteLine("Offers (v2): --offers [--dispatch-grpc http://localhost:5202] [--dispatch-http http://localhost:5102] [--accept-rate 0.6] [--reject-rate 0.25] [--response-delay 5]");
+    Console.Error.WriteLine("Delivery (v3): --codes-file codes.jsonl [--orders-url http://localhost:5101] [--mistype-rate 0.15] [--fail-rate 0.1] [--travel 3]");
     return 2;
 }
 
@@ -62,6 +63,12 @@ if (options.Offers)
 {
     Console.WriteLine($"Offers: seen {stats.OffersSeen}, accepted {stats.OffersAccepted}, rejected {stats.OffersRejected}, ignored {stats.OffersIgnored}, withdrawn {stats.OffersWithdrawn}; "
         + $"answers refused (too late) {stats.AnswersRefused}, failed {stats.AnswersFailed}; offer stream errors {stats.OfferStreamErrors}.");
+}
+
+if (options.CodesFile is not null)
+{
+    Console.WriteLine($"Deliveries: picked up {stats.ParcelsPickedUp}, delivered {stats.ParcelsDelivered}, mistyped codes rejected {stats.WrongCodesRejected}, "
+        + $"delivery failed {stats.DeliveriesFailed} -> returned {stats.ParcelsReturned}; code never arrived {stats.CodesMissing}, pickup retries {stats.PickupRetries}, other call failures {stats.DeliveryCallsFailed}.");
 }
 
 if (stats.ProbeSummary() is { } probe)

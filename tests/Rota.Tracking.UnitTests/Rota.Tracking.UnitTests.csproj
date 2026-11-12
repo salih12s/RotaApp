@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Services\Tracking\Rota.Tracking.Api\Rota.Tracking.Api.csproj" />
     <ProjectReference Include="..\..\src\Simulators\Rota.Sim.CourierFleet\Rota.Sim.CourierFleet.csproj" />
+    <ProjectReference Include="..\..\src\Simulators\Rota.Sim.Merchant\Rota.Sim.Merchant.csproj" />
     <ProjectReference Include="..\Rota.TestKit\Rota.TestKit.csproj" />
   </ItemGroup>
 

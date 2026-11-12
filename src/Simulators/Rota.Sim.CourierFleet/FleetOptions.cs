@@ -45,6 +45,23 @@ public sealed record FleetOptions
     /// <summary>Longest time a courier takes to answer, in seconds (the shortest is half a second, or this if smaller).</summary>
     public double ResponseDelaySeconds { get; init; } = 5;
 
+    /// <summary>Simulator v3: Orders' REST address (pickup, deliver, ...). Used only together with <see cref="CodesFile"/>.</summary>
+    public Uri OrdersUrl { get; init; } = new("http://localhost:5101");
+
+    /// <summary>JSON-lines file with the delivery codes from the merchant simulator; without it, accepted orders are not delivered (v2).</summary>
+    public string? CodesFile { get; init; }
+
+    /// <summary>Chance a courier mistypes the customer's code once before getting it right.</summary>
+    public double MistypeRate { get; init; } = 0.15;
+
+    /// <summary>Chance the customer is not there: delivery fails and the parcel is returned.</summary>
+    public double FailRate { get; init; } = 0.1;
+
+    /// <summary>Longest ride to the pickup and to the customer, in seconds (a random time up to this for each).</summary>
+    public double TravelSeconds { get; init; } = 3;
+
+    public DeliveryBehavior DeliveryBehavior => new(MistypeRate, FailRate);
+
     public OfferBehavior OfferBehavior => new(
         AcceptRate, RejectRate, TimeSpan.FromSeconds(Math.Min(0.5, ResponseDelaySeconds)), TimeSpan.FromSeconds(ResponseDelaySeconds));
 
@@ -83,6 +100,11 @@ public sealed record FleetOptions
                 "dispatch-http" => options with { DispatchHttpUrl = new Uri(value) },
                 "accept-rate" => options with { AcceptRate = double.Parse(value, CultureInfo.InvariantCulture) },
                 "reject-rate" => options with { RejectRate = double.Parse(value, CultureInfo.InvariantCulture) },
+                "orders-url" => options with { OrdersUrl = new Uri(value) },
+                "codes-file" => options with { CodesFile = value },
+                "mistype-rate" => options with { MistypeRate = double.Parse(value, CultureInfo.InvariantCulture) },
+                "fail-rate" => options with { FailRate = double.Parse(value, CultureInfo.InvariantCulture) },
+                "travel" => options with { TravelSeconds = double.Parse(value, CultureInfo.InvariantCulture) },
                 "response-delay" => options with { ResponseDelaySeconds = double.Parse(value, CultureInfo.InvariantCulture) },
                 _ => throw new ArgumentException($"Unknown option --{name}."),
             };
@@ -96,6 +118,11 @@ public sealed record FleetOptions
         if (options.AcceptRate is < 0 or > 1 || options.RejectRate is < 0 or > 1 || options.AcceptRate + options.RejectRate > 1 || options.ResponseDelaySeconds < 0)
         {
             throw new ArgumentException("--accept-rate and --reject-rate must be within [0, 1] and add up to at most 1; --response-delay must be >= 0.");
+        }
+
+        if (options.MistypeRate is < 0 or > 1 || options.FailRate is < 0 or > 1 || options.MistypeRate + options.FailRate > 1 || options.TravelSeconds < 0)
+        {
+            throw new ArgumentException("--mistype-rate and --fail-rate must be within [0, 1] and add up to at most 1; --travel must be >= 0.");
         }
 
         return options;

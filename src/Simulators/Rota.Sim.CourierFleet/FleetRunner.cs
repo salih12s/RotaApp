@@ -46,11 +46,12 @@ public sealed class FleetRunner(FleetOptions options, FleetStats stats, TimeProv
             KeepAlivePingTimeout = TimeSpan.FromSeconds(20),
         };
         using var dispatchChannel = options.Offers ? GrpcChannel.ForAddress(options.DispatchGrpcUrl, new GrpcChannelOptions { HttpHandler = dispatchHandler }) : null;
+        using var ordersHttp = options.Offers && options.CodesFile is not null ? new HttpClient { BaseAddress = options.OrdersUrl } : null;
         using var dispatchHttp = options.Offers ? new HttpClient { BaseAddress = options.DispatchHttpUrl } : null;
         if (dispatchChannel is not null && dispatchHttp is not null)
         {
             var offers = new CourierOffers.CourierOffersClient(dispatchChannel);
-            var responder = new OfferResponder(options, stats);
+            var responder = new OfferResponder(options, stats, ordersHttp, options.CodesFile is null ? null : new CodeBook(options.CodesFile));
             tasks.AddRange(Enumerable.Range(0, options.Couriers).Select(i => responder.RunCourierAsync(offers, dispatchHttp, i, stop)));
         }
 

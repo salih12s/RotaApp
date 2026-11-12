@@ -1,5 +1,6 @@
 using Rota.Orders.Api.Features.CancelOrder;
 using Rota.Orders.Api.Features.CreateOrder;
+using Rota.Orders.Api.Features.Delivery;
 using Rota.Orders.Api.Features.GetOrder;
 using Rota.Orders.Api.Features.ListOrders;
 using Rota.Orders.Api.Infrastructure;
@@ -23,6 +24,7 @@ public static class OrdersEndpoints
         orders.MapGetOrder();
         orders.MapListOrders();
         orders.MapCancelOrder();
+        orders.MapDeliveryEndpoints();
 
         // Public keys only. Internal network in production (docs/06 §1); no secret is exposed here.
         app.MapGet(JwksPath, (TrackingTokenIssuer issuer) => TypedResults.Ok(new { keys = new[] { issuer.PublicJwk } }))

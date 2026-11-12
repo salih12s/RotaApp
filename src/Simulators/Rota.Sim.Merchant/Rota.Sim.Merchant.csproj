@@ -1,7 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\BuildingBlocks\Rota.BuildingBlocks.Web\Rota.BuildingBlocks.Web.csproj" />
-  </ItemGroup>
+  <!-- Pretend merchants: create orders through the real REST API, pass the delivery codes to the courier simulator, cancel some, report how each order ended. -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
 
 </Project>

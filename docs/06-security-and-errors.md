@@ -20,6 +20,20 @@ Keycloak F08'de gelir. Ama yetki kuralları (kaynak sahipliği) ilk günden yaz�
 - **Yalnızca `Development` ortamında ve testlerde** bir `DevAuth` şeması claim'leri istek başlığından okur (`X-Dev-User: courier:<guid>`; iç servis çağrıları için `X-Dev-User: service:<ad>`, gRPC'de metadata anahtarı `x-dev-user`). `service` rolü F04'te eklendi (`ServiceOnly` politikası): F08'de Keycloak client-credentials token'ının rolüne dönüşecek.
 - F08'de `DevAuth` yalnız test projesinde kalır; uygulamada `Development` dışında kaydedilirse uygulama **başlamaz** (başlangıç kontrolü).
 
+### F08 sonrası: servislerde kimlik doğrulama (`AddRotaAuth`)
+
+| Ortam | `Auth:Authority` | Sonuç |
+|---|---|---|
+| Production / Staging | var | Yalnız Keycloak JWT. `X-Dev-User` başlığı **yok sayılır** (anonim), DevAuth kayıtlı bile değil |
+| Production / Staging | yok | Uygulama **başlamaz** (açık bırakmaktansa durur) |
+| Development | var | JWT **ve** `X-Dev-User` birlikte (başlık varsa DevAuth, yoksa JWT) |
+| Development | yok | Yalnız `X-Dev-User` (F01–F07'deki gibi; entegrasyon testleri böyle) |
+
+- **Doğrulama:** imza anahtarı `Authority`'nin discovery belgesinden gelir (anahtar rotasyonu için deploy gerekmez); `aud` = `Auth:Audience` (`rota-api`) zorunlu, yani başka bir API için üretilmiş geçerli token da reddedilir (401); `exp` için 30 sn tolerans.
+- **Claim eşlemesi:** `MapInboundClaims=false`; `sub`, `role` (çok değerli), `merchant_id` Keycloak'ın yazdığı adla okunur. Keycloak'ta `role` claim'ini realm rolünden üreten ve `rota-api` audience'ını ekleyen mapper her client'ta tanımlı (`deploy/keycloak/realm-rota.json`).
+- **`Auth:RequireHttpsMetadata`** varsayılan `true`. Yalnız kapalı ağdaki Keycloak için (yerel compose, testler) `false` yapılır.
+- **Dev realm kimlikleri** (yalnız `deploy/keycloak/realm-rota.json`; parola `dev`): merchant client'ları `merchant-demo-a/b` ve simülatör için `merchant-sim-0..4`; kurye kullanıcıları `courier-1/2` ve `sim-courier-00..49` (`sub` = sabit GUID `c1000000-0000-4000-8000-0000000000NN`); `dispatcher-1`; servisler arası `svc-internal` (rol `service`); `other-api-client` (testlerde "başka API'nin token'ı" için, `aud` yok). `rota-app` public client'ında **direct access grant (parola)** yalnız simülatörler ve `.http` dosyaları token alabilsin diye açık; gerçek mobil/web istemci Authorization Code + PKCE kullanır.
+
 ## 2. Yetki politikaları
 
 | Politika | Kural | Hata |
@@ -56,6 +70,10 @@ Keycloak F08'de gelir. Ama yetki kuralları (kaynak sahipliği) ilk günden yaz�
 | Anonim takip bağlantısı | 10 bağlantı/dk | IP |
 
 Gateway 2 instance çalıştığında sınırın instance başına değil **toplam** uygulanması için sayaçlar Redis'te tutulur (F08). Tek instance'ta ASP.NET Core'un yerleşik rate limiter'ı yeterlidir; Redis'in gerekçesi ikinci instance'tır.
+
+**Nasıl çalışır (F08):** Her sınır bir **token bucket**'tır (kova): kapasite = "bir anda gelebilecek istek", dolum = `Limit / PerSeconds` jeton/sn. "50 istek/sn" = Limit 50, PerSeconds 1. Okuma-doldurma-harcama tek Lua betiğidir, Redis betiği bölmeden çalıştırır; iki instance son jetonu birlikte alamaz. Betik zamanı Redis'in kendi saatinden (`TIME`) okur, instance saatleri hesaba girmez (sabit pencerenin sınırdaki 2× patlaması da yok). Aşımda `429` + `Retry-After` (`rate-limited`). Kurallar `RateLimit:Rules` ayarında, ilk eşleşen kazanır; anahtar `merchant_id` / `sub` / IP (claim yoksa IP). Sıra: önce kimlik doğrulama (401), sonra limit; yani token'sız istekler bir merchant'ın kovasını tüketemez.
+
+**Redis kapalıysa:** limit **uygulanmaz** (fail open, uyarı loglanır). Gerekçe: limitleyici kapasiteyi korur, güvenlik sınırı değildir; token zaten doğrulandı. Bedel: Redis kesintisinde aşırı yük koruması geçici olarak yoktur. Anonim takip kuralı (`/graphql`, IP başına 10/dk) F09'da rota eklenince devreye girer; kural şimdiden ayarda.
 
 ## 4. Kişisel veri (KVKK) ve sırlar
 

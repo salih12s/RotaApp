@@ -12,15 +12,14 @@ namespace Rota.Sim.CourierFleet;
 /// <see cref="DeliveryBehavior"/>) delivers with the customer's code (sometimes mistyped first), or fails and returns it.
 /// Without an Orders address and a code file the courier stops after accepting, as in v2.
 /// </summary>
-public sealed class OfferResponder(FleetOptions options, FleetStats stats, HttpClient? ordersHttp, CodeBook? codes)
+public sealed class OfferResponder(FleetOptions options, FleetStats stats, Rota.Sim.Common.SimCredentials credentials, HttpClient? ordersHttp, CodeBook? codes)
 {
     private static readonly TimeSpan _retryAfterError = TimeSpan.FromSeconds(1);
 
     public async Task RunCourierAsync(CourierOffers.CourierOffersClient offers, HttpClient dispatchHttp, int index, CancellationToken stop)
     {
         var random = new Random(HashCode.Combine(options.Seed, index, 104_729));
-        var devUser = $"courier:{FleetRunner.CourierIdentity(options.Seed, index):D}";
-        var headers = new Metadata { { "x-dev-user", devUser } };
+        var devUser = $"courier:{options.CourierId(index):D}";
 
         await StartShiftAsync(dispatchHttp, devUser, stop);
 
@@ -28,7 +27,7 @@ public sealed class OfferResponder(FleetOptions options, FleetStats stats, HttpC
         {
             try
             {
-                using var call = offers.SubscribeOffers(new SubscribeOffersRequest(), headers, cancellationToken: stop);
+                using var call = offers.SubscribeOffers(new SubscribeOffersRequest(), await credentials.MetadataAsync(devUser), cancellationToken: stop);
                 await foreach (var message in call.ResponseStream.ReadAllAsync(stop))
                 {
                     switch (message.EventCase)
@@ -65,10 +64,10 @@ public sealed class OfferResponder(FleetOptions options, FleetStats stats, HttpC
         }
     }
 
-    private static async Task StartShiftAsync(HttpClient http, string devUser, CancellationToken stop)
+    private async Task StartShiftAsync(HttpClient http, string devUser, CancellationToken stop)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/couriers/me/shift/start");
-        request.Headers.Add("X-Dev-User", devUser);
+        await credentials.SignAsync(request, devUser, stop);
         try
         {
             // 200 = started; 409 = already on shift from an earlier run. Both mean "available".
@@ -104,7 +103,7 @@ public sealed class OfferResponder(FleetOptions options, FleetStats stats, HttpC
 
         var action = decision == OfferDecision.Accept ? "accept" : "reject";
         using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/offers/{offerId}/{action}");
-        request.Headers.Add("X-Dev-User", devUser);
+        await credentials.SignAsync(request, devUser, stop);
         try
         {
             using var response = await http.SendAsync(request, stop);
@@ -235,7 +234,7 @@ public sealed class OfferResponder(FleetOptions options, FleetStats stats, HttpC
     private async Task<HttpResponseMessage?> SendAsync(Guid orderId, string action, HttpContent? content, string devUser, CancellationToken stop)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/orders/{orderId}/{action}") { Content = content };
-        request.Headers.Add("X-Dev-User", devUser);
+        await credentials.SignAsync(request, devUser, stop);
         try
         {
             return await ordersHttp!.SendAsync(request, stop);

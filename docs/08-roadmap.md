@@ -12,15 +12,19 @@
 | F05 | Dispatch: otomatik atama | XL | ✅ PASS |
 | F06 | Teslimat akışı ve iptal kuralları | M | ✅ PASS |
 | F07 | Notifications: güvenilir webhook | M | ✅ PASS |
-| F08 | Gateway + Keycloak + yetki | L | ⏭️ Sıradaki |
-| F09 | Ops API: GraphQL ve canlı takip | L | Bekliyor |
+| F08 | Gateway + Keycloak + yetki | L | ✅ PASS |
+| F09 | Ops API: GraphQL ve canlı takip | L | ⏭️ Sıradaki |
 | F10 | Gözlemlenebilirlik | M | Bekliyor |
 | F11 | Performans ölçümü ve optimizasyon | L | Bekliyor |
 | F12 | Container'lar, dağıtım ve README | M | Bekliyor |
 | F13 | *(opsiyonel)* Dispatcher harita arayüzü | M | Bekliyor |
 | F14 | *(opsiyonel, koşullu)* Kafka ile yeniden oynatma | M | Bekliyor |
 
-> **Devir notu (2026-11-12, F07 sonu):** F00–F07 bitti (`faz/f07-notifications`, F06'nın üstünden açıldı; `main`'e henüz PR yok; **F07 commit'lenmedi**). Sıradaki **F08** (L, güvenlik: `high` effort; yeni oturumda, Keycloak/YARP/Redis rate limit). F08 için hazır olanlar: tüm servislerde `AddRotaDevAuth` + politika adları (`MerchantOnly`, `CourierOnly`, `DispatcherOnly`, `ServiceOnly`, `CourierOrDispatcher`…) ve sahiplik süzmesi sorguda (404); `DevAuth` Development dışında kayıtlıysa uygulama başlamıyor (kod var, PASS 4'ün testi yazılmadı). F08'de eklenecek: `JwtBearer` (rol claim eşlemesi: `role`, `merchant_id`, `sub`), Keycloak realm (`deploy/keycloak/realm-rota.json`), YARP gateway (REST, gRPC, WebSocket), Redis tabanlı dağıtık rate limit (06 §3), simülatörlerin token alması, `Testcontainers.Keycloak` (yeni paket: lisans/.NET 10 uyumu kontrol edilecek), `Yarp.ReverseProxy` (yeni paket). **Açık kararlar (Salih):** F05'ten: yeniden başlatma aynı iş mi yeni iş mi (`02 §5.4` notu), ilk çağrıda 200 ms deadline, Redis kapalıyken Tracking konum alımı. Bilinen açıklar: bayat kurye temizlik işi, konum hız sınırı, DB `/health/ready`, F06 trace ekran görüntüsü (F10), Notifications'ta abonelik silme ucu yok, bulkhead/devre kesici instance başına. Test komutu: `dotnet test RotaApp.slnx` (Docker açık olmalı; 742 test).
+> **Devir notu (2026-11-12, F08 sonu):** F00–F08 bitti (`faz/f08-gateway`; `main`'e PR yok). F08 kanıtı ve **test edilmeyenler listesi**: `docs/evidence/f08/README.md` (864 test, hepsi geçti). Gateway: `src/Gateway/Rota.Gateway` (`:5000` REST, `:5200` gRPC; YARP rotaları `appsettings.json`'da, rate limit `RateLimit:Rules`, Redis token bucket). F09 için hazır olanlar: `AddRotaAuth()` (Ops API'ye de eklenecek), gateway'de eklenecek rota + `/graphql` anonim-takip limit kuralı ayarda hazır (WebSocket rotası F09'da yazılacak), Keycloak'ta `dispatcher-1`. Sıradaki **F09** (L): yeni oturumda. **Açık kararlar (Salih):** F05'ten: yeniden başlatma aynı iş mi yeni iş mi, ilk çağrıda 200 ms deadline, Redis kapalıyken Tracking konum alımı. **Kararsız test:** `ResilienceTests.Bulkhead_ASlowMerchantDoesNotSlowAFastOne` (F07).
+>
+> **Önceki devir notu (F08 adım 1 sonu):** F07 commit'lendi (`f82a10a`); F08 `faz/f08-gateway`'de (F07'nin üstünden). **Bitti:** Keycloak compose'da (`quay.io/keycloak/keycloak:26.8.2`, `localhost:8180`) ve `deploy/keycloak/realm-rota.json` (roller; `merchant-demo-a/b` + `svc-internal` client credentials; `rota-app` public client + test kullanıcıları `courier-1/2`, `dispatcher-1`, parola `dev`); dört token türü elle alınıp claim'leri doğrulandı (`aud=rota-api`, `role`, `merchant_id`, `sub`). Dört serviste `AddRotaAuth()` (JwtBearer; `Auth:Authority` yoksa Development'ta DevAuth, Development dışında başlangıç hatası; Development'ta ikisi birlikte). Paketler eklendi (JwtBearer 10.0.15, Yarp 2.3.0, Testcontainers.Keycloak 4.16.0; hepsi MIT). **Kaldı:** servislerin `appsettings`'ine `Auth:Authority`; `Testcontainers.Keycloak` ile rol×uç matrisi ve PASS 2/4 testleri; YARP gateway (REST/gRPC/WebSocket); Redis rate limit; simülatörlerin token alması; `.http` token adımı. **Karar bekliyor (Salih):** simülatörde yüzlerce kurye var (`CourierIdentity(seed, index)`), Keycloak'a hepsini seed'lemek yerine ya N kullanıcılık üretilmiş realm ya da dev-only bir token yolu gerekir. **Bilinen kararsız test:** `ResilienceTests.Bulkhead_ASlowMerchantDoesNotSlowAFastOne` (F07; gerçek saatle p95 < 2 sn; F08 değişikliklerinden bağımsız, ~5 koşunun 1'inde düşüyor).
+>
+> **Önceki devir notu (F07 sonu):** F00–F07 bitti (`faz/f07-notifications`, F06'nın üstünden açıldı; `main`'e henüz PR yok; **F07 commit'lenmedi**). Sıradaki **F08** (L, güvenlik: `high` effort; yeni oturumda, Keycloak/YARP/Redis rate limit). F08 için hazır olanlar: tüm servislerde `AddRotaDevAuth` + politika adları (`MerchantOnly`, `CourierOnly`, `DispatcherOnly`, `ServiceOnly`, `CourierOrDispatcher`…) ve sahiplik süzmesi sorguda (404); `DevAuth` Development dışında kayıtlıysa uygulama başlamıyor (kod var, PASS 4'ün testi yazılmadı). F08'de eklenecek: `JwtBearer` (rol claim eşlemesi: `role`, `merchant_id`, `sub`), Keycloak realm (`deploy/keycloak/realm-rota.json`), YARP gateway (REST, gRPC, WebSocket), Redis tabanlı dağıtık rate limit (06 §3), simülatörlerin token alması, `Testcontainers.Keycloak` (yeni paket: lisans/.NET 10 uyumu kontrol edilecek), `Yarp.ReverseProxy` (yeni paket). **Açık kararlar (Salih):** F05'ten: yeniden başlatma aynı iş mi yeni iş mi (`02 §5.4` notu), ilk çağrıda 200 ms deadline, Redis kapalıyken Tracking konum alımı. Bilinen açıklar: bayat kurye temizlik işi, konum hız sınırı, DB `/health/ready`, F06 trace ekran görüntüsü (F10), Notifications'ta abonelik silme ucu yok, bulkhead/devre kesici instance başına. Test komutu: `dotnet test RotaApp.slnx` (Docker açık olmalı; 742 test).
 
 Durum değerleri: `Bekliyor` · `⏭️ Sıradaki` · `🔨 Devam ediyor` · `✅ PASS` · `❌ FAIL (gerekçe)`. Faz kapanınca bu tablo aynı PR'da güncellenir.
 
@@ -382,13 +386,13 @@ dotnet test tests/Rota.Notifications.IntegrationTests
 **Öğrenilecek kavramlar:** OIDC, client credentials, JWT doğrulama (authority, audience, imza anahtarı rotasyonu), YARP route/cluster, gRPC ve WebSocket proxy, dağıtık rate limiting, savunma derinliği.
 
 **Yapılacaklar**
-- [ ] Keycloak compose'a; `deploy/keycloak/realm-rota.json`: roller, merchant client'ları (`merchant_id` claim eşleyicisi), test kurye/dispatcher kullanıcıları (yalnız seed dosyasında)
-- [ ] Bütün servislerde `JwtBearer`; `DevAuth` Development dışında kayıtlıysa başlangıç hatası
-- [ ] YARP: REST, gRPC (HTTP/2) ve WebSocket rotaları; `traceparent` geçişi
-- [ ] Redis tabanlı dağıtık rate limit ([06 §3](06-security-and-errors.md))
-- [ ] Simülatörler token alıyor (dev realm'de test kullanıcıları için direct access grant; gerçek mobilde Authorization Code + PKCE olacağı README'de belirtilir)
-- [ ] `.http` dosyalarına token alma adımı
-- [ ] Testler: `Testcontainers.Keycloak` ile gerçek token
+- [x] Keycloak compose'a; `deploy/keycloak/realm-rota.json`: roller, merchant client'ları (`merchant_id` claim eşleyicisi), test kurye/dispatcher kullanıcıları (yalnız seed dosyasında)
+- [x] Bütün servislerde `JwtBearer`; `DevAuth` Development dışında kayıtlıysa başlangıç hatası
+- [x] YARP: REST, gRPC (HTTP/2) ve WebSocket rotaları; `traceparent` geçişi
+- [x] Redis tabanlı dağıtık rate limit ([06 §3](06-security-and-errors.md))
+- [x] Simülatörler token alıyor (dev realm'de test kullanıcıları için direct access grant; gerçek mobilde Authorization Code + PKCE olacağı README'de belirtilir)
+- [x] `.http` dosyalarına token alma adımı
+- [x] Testler: `Testcontainers.Keycloak` ile gerçek token
 
 **PASS kriterleri**
 1. **R-10:** Rol × uç matrisi testli: token yok 401, yanlış rol 403, başkasının kaynağı 404.

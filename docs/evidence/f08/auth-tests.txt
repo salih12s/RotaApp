@@ -1,0 +1,50 @@
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Orders.IntegrationTests\bin\Debug\net10.0\Rota.Orders.IntegrationTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Auth.IntegrationTests\bin\Debug\net10.0\Rota.Auth.IntegrationTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Dispatch.IntegrationTests\bin\Debug\net10.0\Rota.Dispatch.IntegrationTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Tracking.UnitTests\bin\Debug\net10.0\Rota.Tracking.UnitTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Tracking.IntegrationTests\bin\Debug\net10.0\Rota.Tracking.IntegrationTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Dispatch.UnitTests\bin\Debug\net10.0\Rota.Dispatch.UnitTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Notifications.IntegrationTests\bin\Debug\net10.0\Rota.Notifications.IntegrationTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Contracts.Tests\bin\Debug\net10.0\Rota.Contracts.Tests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Orders.UnitTests\bin\Debug\net10.0\Rota.Orders.UnitTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Notifications.UnitTests\bin\Debug\net10.0\Rota.Notifications.UnitTests.dll (net10.0|x64)
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Orders.IntegrationTests\bin\Debug\net10.0\Rota.Orders.IntegrationTests.dll (net10.0|x64) Zero tests ran (909ms)
+Exit code: 8
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Dispatch.UnitTests\bin\Debug\net10.0\Rota.Dispatch.UnitTests.dll (net10.0|x64) Zero tests ran (893ms)
+Exit code: 8
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Tracking.UnitTests\bin\Debug\net10.0\Rota.Tracking.UnitTests.dll (net10.0|x64) Zero tests ran (901ms)
+Exit code: 8
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Tracking.IntegrationTests\bin\Debug\net10.0\Rota.Tracking.IntegrationTests.dll (net10.0|x64) Zero tests ran (906ms)
+Exit code: 8
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Dispatch.IntegrationTests\bin\Debug\net10.0\Rota.Dispatch.IntegrationTests.dll (net10.0|x64) Zero tests ran (936ms)
+Exit code: 8
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Notifications.IntegrationTests\bin\Debug\net10.0\Rota.Notifications.IntegrationTests.dll (net10.0|x64) Zero tests ran (891ms)
+Exit code: 8
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Notifications.UnitTests\bin\Debug\net10.0\Rota.Notifications.UnitTests.dll (net10.0|x64) Zero tests ran (847ms)
+Exit code: 8
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Orders.UnitTests\bin\Debug\net10.0\Rota.Orders.UnitTests.dll (net10.0|x64) Zero tests ran (898ms)
+Exit code: 8
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Contracts.Tests\bin\Debug\net10.0\Rota.Contracts.Tests.dll (net10.0|x64) Zero tests ran (916ms)
+Exit code: 8
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Auth.IntegrationTests\bin\Debug\net10.0\Rota.Auth.IntegrationTests.dll (net10.0|x64) passed (30s 731ms)
+
+Test run summary: Failed!
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Tracking.UnitTests\bin\Debug\net10.0\Rota.Tracking.UnitTests.dll (net10.0|x64) Zero tests ran (901ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Notifications.IntegrationTests\bin\Debug\net10.0\Rota.Notifications.IntegrationTests.dll (net10.0|x64) Zero tests ran (891ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Notifications.UnitTests\bin\Debug\net10.0\Rota.Notifications.UnitTests.dll (net10.0|x64) Zero tests ran (847ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Dispatch.UnitTests\bin\Debug\net10.0\Rota.Dispatch.UnitTests.dll (net10.0|x64) Zero tests ran (893ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Orders.IntegrationTests\bin\Debug\net10.0\Rota.Orders.IntegrationTests.dll (net10.0|x64) Zero tests ran (909ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Orders.UnitTests\bin\Debug\net10.0\Rota.Orders.UnitTests.dll (net10.0|x64) Zero tests ran (898ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Auth.IntegrationTests\bin\Debug\net10.0\Rota.Auth.IntegrationTests.dll (net10.0|x64) passed (30s 731ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Dispatch.IntegrationTests\bin\Debug\net10.0\Rota.Dispatch.IntegrationTests.dll (net10.0|x64) Zero tests ran (936ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Contracts.Tests\bin\Debug\net10.0\Rota.Contracts.Tests.dll (net10.0|x64) Zero tests ran (916ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Tracking.IntegrationTests\bin\Debug\net10.0\Rota.Tracking.IntegrationTests.dll (net10.0|x64) Zero tests ran (906ms)
+
+  error: 9
+
+  total: 122
+  failed: 0
+  succeeded: 122
+  skipped: 0
+  duration: 31s 122ms
+Test run completed with non-success exit code: 8 (see: https://aka.ms/testingplatform/exitcodes)

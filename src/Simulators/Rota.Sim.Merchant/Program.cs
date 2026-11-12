@@ -37,13 +37,14 @@ try
 catch (Exception ex) when (ex is ArgumentException or FormatException or UriFormatException)
 {
     await Console.Error.WriteLineAsync(ex.Message);
-    await Console.Error.WriteLineAsync("Usage: --orders 50 [--merchants 3] [--url http://localhost:5101] [--interval 0.5] [--codes-file codes.jsonl] [--cancel-rate 0.1] [--seed 1] [--timeout 300] [--no-wait]");
+    await Console.Error.WriteLineAsync("Usage: --orders 50 [--merchants 3] [--url http://localhost:5101] [--auth http://localhost:8180/realms/rota] [--interval 0.5] [--codes-file codes.jsonl] [--cancel-rate 0.1] [--seed 1] [--timeout 300] [--no-wait]");
     return 2;
 }
 
 string[] finalStatuses = ["Delivered", "Returned", "Cancelled"];
 var random = new Random(options.Seed);
 using var http = new HttpClient { BaseAddress = options.Url };
+using var credentials = new Rota.Sim.Common.SimCredentials(options.Auth, TimeProvider.System);
 var created = new List<(Guid Id, string Merchant)>();
 var failedToCreate = 0;
 var cancelRequests = new List<Task<HttpStatusCode?>>();
@@ -59,7 +60,7 @@ for (var i = 0; i < options.Orders; i++)
     var body = OrderFactory.Create(random, merchantIndex, i);
 
     using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/orders") { Content = JsonContent.Create(body) };
-    request.Headers.Add("X-Dev-User", $"merchant:{merchant}");
+    await credentials.SignAsync(request, $"merchant:{merchant}");
     request.Headers.Add("Idempotency-Key", $"sim-{options.Seed}-{i}-{Guid.NewGuid():N}");
 
     try
@@ -128,11 +129,11 @@ foreach (var (order, status) in stuck.Take(20))
 
 return stuck.Count == 0 && failedToCreate == 0 ? 0 : 1;
 
-static async Task<HttpStatusCode?> CancelLaterAsync(HttpClient http, Guid orderId, string merchant, TimeSpan delay)
+async Task<HttpStatusCode?> CancelLaterAsync(HttpClient http, Guid orderId, string merchant, TimeSpan delay)
 {
     await Task.Delay(delay);
     using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/orders/{orderId}/cancel") { Content = JsonContent.Create(new { reason = "customer changed mind (simulated)" }) };
-    request.Headers.Add("X-Dev-User", $"merchant:{merchant}");
+    await credentials.SignAsync(request, $"merchant:{merchant}");
     try
     {
         using var response = await http.SendAsync(request);
@@ -144,13 +145,13 @@ static async Task<HttpStatusCode?> CancelLaterAsync(HttpClient http, Guid orderI
     }
 }
 
-static async Task<string> WaitForFinalAsync(HttpClient http, Guid orderId, string merchant, string[] finalStatuses, TimeSpan deadline, Stopwatch clock)
+async Task<string> WaitForFinalAsync(HttpClient http, Guid orderId, string merchant, string[] finalStatuses, TimeSpan deadline, Stopwatch clock)
 {
     var last = "unknown";
     while (clock.Elapsed < deadline)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/orders/{orderId}");
-        request.Headers.Add("X-Dev-User", $"merchant:{merchant}");
+        await credentials.SignAsync(request, $"merchant:{merchant}");
         try
         {
             using var response = await http.SendAsync(request);

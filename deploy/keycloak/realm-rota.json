@@ -1,0 +1,351 @@
+{
+  "realm": "rota",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 300,
+  "roles": {
+    "realm": [
+      { "name": "merchant", "description": "Business system (client credentials); the token carries merchant_id." },
+      { "name": "courier", "description": "Courier app user; sub is the courierId." },
+      { "name": "dispatcher", "description": "Operations panel user." },
+      { "name": "service", "description": "Another Rota service calling over the internal network." }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "merchant-sim-0",
+      "name": "Simulated merchant 0 (dev)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-sim-merchant-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocolMappers": [
+        { "name": "merchant-id", "protocol": "openid-connect", "protocolMapper": "oidc-hardcoded-claim-mapper", "config": { "claim.name": "merchant_id", "claim.value": "merchant-sim-0", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" } },
+        { "name": "realm-role-as-role", "protocol": "openid-connect", "protocolMapper": "oidc-usermodel-realm-role-mapper", "config": { "claim.name": "role", "multivalued": "true", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" } },
+        { "name": "audience-rota-api", "protocol": "openid-connect", "protocolMapper": "oidc-audience-mapper", "config": { "included.custom.audience": "rota-api", "access.token.claim": "true", "id.token.claim": "false" } }
+      ]
+    },
+    {
+      "clientId": "merchant-sim-1",
+      "name": "Simulated merchant 1 (dev)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-sim-merchant-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocolMappers": [
+        { "name": "merchant-id", "protocol": "openid-connect", "protocolMapper": "oidc-hardcoded-claim-mapper", "config": { "claim.name": "merchant_id", "claim.value": "merchant-sim-1", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" } },
+        { "name": "realm-role-as-role", "protocol": "openid-connect", "protocolMapper": "oidc-usermodel-realm-role-mapper", "config": { "claim.name": "role", "multivalued": "true", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" } },
+        { "name": "audience-rota-api", "protocol": "openid-connect", "protocolMapper": "oidc-audience-mapper", "config": { "included.custom.audience": "rota-api", "access.token.claim": "true", "id.token.claim": "false" } }
+      ]
+    },
+    {
+      "clientId": "merchant-sim-2",
+      "name": "Simulated merchant 2 (dev)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-sim-merchant-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocolMappers": [
+        { "name": "merchant-id", "protocol": "openid-connect", "protocolMapper": "oidc-hardcoded-claim-mapper", "config": { "claim.name": "merchant_id", "claim.value": "merchant-sim-2", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" } },
+        { "name": "realm-role-as-role", "protocol": "openid-connect", "protocolMapper": "oidc-usermodel-realm-role-mapper", "config": { "claim.name": "role", "multivalued": "true", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" } },
+        { "name": "audience-rota-api", "protocol": "openid-connect", "protocolMapper": "oidc-audience-mapper", "config": { "included.custom.audience": "rota-api", "access.token.claim": "true", "id.token.claim": "false" } }
+      ]
+    },
+    {
+      "clientId": "merchant-sim-3",
+      "name": "Simulated merchant 3 (dev)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-sim-merchant-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocolMappers": [
+        { "name": "merchant-id", "protocol": "openid-connect", "protocolMapper": "oidc-hardcoded-claim-mapper", "config": { "claim.name": "merchant_id", "claim.value": "merchant-sim-3", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" } },
+        { "name": "realm-role-as-role", "protocol": "openid-connect", "protocolMapper": "oidc-usermodel-realm-role-mapper", "config": { "claim.name": "role", "multivalued": "true", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" } },
+        { "name": "audience-rota-api", "protocol": "openid-connect", "protocolMapper": "oidc-audience-mapper", "config": { "included.custom.audience": "rota-api", "access.token.claim": "true", "id.token.claim": "false" } }
+      ]
+    },
+    {
+      "clientId": "merchant-sim-4",
+      "name": "Simulated merchant 4 (dev)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-sim-merchant-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocolMappers": [
+        { "name": "merchant-id", "protocol": "openid-connect", "protocolMapper": "oidc-hardcoded-claim-mapper", "config": { "claim.name": "merchant_id", "claim.value": "merchant-sim-4", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" } },
+        { "name": "realm-role-as-role", "protocol": "openid-connect", "protocolMapper": "oidc-usermodel-realm-role-mapper", "config": { "claim.name": "role", "multivalued": "true", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" } },
+        { "name": "audience-rota-api", "protocol": "openid-connect", "protocolMapper": "oidc-audience-mapper", "config": { "included.custom.audience": "rota-api", "access.token.claim": "true", "id.token.claim": "false" } }
+      ]
+    },
+    {
+      "clientId": "merchant-demo-a",
+      "name": "Merchant system A (dev)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-merchant-a-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocolMappers": [
+        {
+          "name": "merchant-id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-hardcoded-claim-mapper",
+          "config": { "claim.name": "merchant_id", "claim.value": "merchant-demo-a", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" }
+        },
+        {
+          "name": "realm-role-as-role",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": { "claim.name": "role", "multivalued": "true", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" }
+        },
+        {
+          "name": "audience-rota-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": { "included.custom.audience": "rota-api", "access.token.claim": "true", "id.token.claim": "false" }
+        }
+      ]
+    },
+    {
+      "clientId": "merchant-demo-b",
+      "name": "Merchant system B (dev)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-merchant-b-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocolMappers": [
+        {
+          "name": "merchant-id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-hardcoded-claim-mapper",
+          "config": { "claim.name": "merchant_id", "claim.value": "merchant-demo-b", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" }
+        },
+        {
+          "name": "realm-role-as-role",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": { "claim.name": "role", "multivalued": "true", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" }
+        },
+        {
+          "name": "audience-rota-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": { "included.custom.audience": "rota-api", "access.token.claim": "true", "id.token.claim": "false" }
+        }
+      ]
+    },
+    {
+      "clientId": "svc-internal",
+      "name": "Rota service-to-service caller (dev)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-svc-internal-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocolMappers": [
+        {
+          "name": "realm-role-as-role",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": { "claim.name": "role", "multivalued": "true", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" }
+        },
+        {
+          "name": "audience-rota-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": { "included.custom.audience": "rota-api", "access.token.claim": "true", "id.token.claim": "false" }
+        }
+      ]
+    },
+    {
+      "clientId": "other-api-client",
+      "name": "A client of some OTHER API (dev): its tokens have no rota-api audience; tests prove they are refused",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-other-api-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocolMappers": [
+        {
+          "name": "merchant-id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-hardcoded-claim-mapper",
+          "config": { "claim.name": "merchant_id", "claim.value": "merchant-other", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" }
+        },
+        {
+          "name": "realm-role-as-role",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": { "claim.name": "role", "multivalued": "true", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" }
+        }
+      ]
+    },
+    {
+      "clientId": "rota-app",
+      "name": "Courier app and dispatcher panel (dev)",
+      "description": "Real mobile/web clients use Authorization Code + PKCE. Direct access grant (password) is on only so simulators and .http files can get a user token in the dev realm.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://localhost:*"],
+      "webOrigins": ["+"],
+      "attributes": { "pkce.code.challenge.method": "S256" },
+      "protocolMappers": [
+        {
+          "name": "realm-role-as-role",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": { "claim.name": "role", "multivalued": "true", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "false", "userinfo.token.claim": "false" }
+        },
+        {
+          "name": "audience-rota-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": { "included.custom.audience": "rota-api", "access.token.claim": "true", "id.token.claim": "false" }
+        }
+      ]
+    }
+  ],
+  "users": [
+    { "username": "service-account-merchant-sim-0", "enabled": true, "serviceAccountClientId": "merchant-sim-0", "realmRoles": ["merchant"] },
+    { "username": "service-account-merchant-sim-1", "enabled": true, "serviceAccountClientId": "merchant-sim-1", "realmRoles": ["merchant"] },
+    { "username": "service-account-merchant-sim-2", "enabled": true, "serviceAccountClientId": "merchant-sim-2", "realmRoles": ["merchant"] },
+    { "username": "service-account-merchant-sim-3", "enabled": true, "serviceAccountClientId": "merchant-sim-3", "realmRoles": ["merchant"] },
+    { "username": "service-account-merchant-sim-4", "enabled": true, "serviceAccountClientId": "merchant-sim-4", "realmRoles": ["merchant"] },
+    { "id": "c1000000-0000-4000-8000-000000000000", "username": "sim-courier-00", "email": "sim-courier-00@rota.local", "firstName": "Sim", "lastName": "Kurye 00", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000001", "username": "sim-courier-01", "email": "sim-courier-01@rota.local", "firstName": "Sim", "lastName": "Kurye 01", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000002", "username": "sim-courier-02", "email": "sim-courier-02@rota.local", "firstName": "Sim", "lastName": "Kurye 02", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000003", "username": "sim-courier-03", "email": "sim-courier-03@rota.local", "firstName": "Sim", "lastName": "Kurye 03", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000004", "username": "sim-courier-04", "email": "sim-courier-04@rota.local", "firstName": "Sim", "lastName": "Kurye 04", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000005", "username": "sim-courier-05", "email": "sim-courier-05@rota.local", "firstName": "Sim", "lastName": "Kurye 05", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000006", "username": "sim-courier-06", "email": "sim-courier-06@rota.local", "firstName": "Sim", "lastName": "Kurye 06", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000007", "username": "sim-courier-07", "email": "sim-courier-07@rota.local", "firstName": "Sim", "lastName": "Kurye 07", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000008", "username": "sim-courier-08", "email": "sim-courier-08@rota.local", "firstName": "Sim", "lastName": "Kurye 08", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000009", "username": "sim-courier-09", "email": "sim-courier-09@rota.local", "firstName": "Sim", "lastName": "Kurye 09", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000010", "username": "sim-courier-10", "email": "sim-courier-10@rota.local", "firstName": "Sim", "lastName": "Kurye 10", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000011", "username": "sim-courier-11", "email": "sim-courier-11@rota.local", "firstName": "Sim", "lastName": "Kurye 11", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000012", "username": "sim-courier-12", "email": "sim-courier-12@rota.local", "firstName": "Sim", "lastName": "Kurye 12", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000013", "username": "sim-courier-13", "email": "sim-courier-13@rota.local", "firstName": "Sim", "lastName": "Kurye 13", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000014", "username": "sim-courier-14", "email": "sim-courier-14@rota.local", "firstName": "Sim", "lastName": "Kurye 14", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000015", "username": "sim-courier-15", "email": "sim-courier-15@rota.local", "firstName": "Sim", "lastName": "Kurye 15", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000016", "username": "sim-courier-16", "email": "sim-courier-16@rota.local", "firstName": "Sim", "lastName": "Kurye 16", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000017", "username": "sim-courier-17", "email": "sim-courier-17@rota.local", "firstName": "Sim", "lastName": "Kurye 17", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000018", "username": "sim-courier-18", "email": "sim-courier-18@rota.local", "firstName": "Sim", "lastName": "Kurye 18", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000019", "username": "sim-courier-19", "email": "sim-courier-19@rota.local", "firstName": "Sim", "lastName": "Kurye 19", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000020", "username": "sim-courier-20", "email": "sim-courier-20@rota.local", "firstName": "Sim", "lastName": "Kurye 20", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000021", "username": "sim-courier-21", "email": "sim-courier-21@rota.local", "firstName": "Sim", "lastName": "Kurye 21", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000022", "username": "sim-courier-22", "email": "sim-courier-22@rota.local", "firstName": "Sim", "lastName": "Kurye 22", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000023", "username": "sim-courier-23", "email": "sim-courier-23@rota.local", "firstName": "Sim", "lastName": "Kurye 23", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000024", "username": "sim-courier-24", "email": "sim-courier-24@rota.local", "firstName": "Sim", "lastName": "Kurye 24", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000025", "username": "sim-courier-25", "email": "sim-courier-25@rota.local", "firstName": "Sim", "lastName": "Kurye 25", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000026", "username": "sim-courier-26", "email": "sim-courier-26@rota.local", "firstName": "Sim", "lastName": "Kurye 26", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000027", "username": "sim-courier-27", "email": "sim-courier-27@rota.local", "firstName": "Sim", "lastName": "Kurye 27", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000028", "username": "sim-courier-28", "email": "sim-courier-28@rota.local", "firstName": "Sim", "lastName": "Kurye 28", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000029", "username": "sim-courier-29", "email": "sim-courier-29@rota.local", "firstName": "Sim", "lastName": "Kurye 29", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000030", "username": "sim-courier-30", "email": "sim-courier-30@rota.local", "firstName": "Sim", "lastName": "Kurye 30", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000031", "username": "sim-courier-31", "email": "sim-courier-31@rota.local", "firstName": "Sim", "lastName": "Kurye 31", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000032", "username": "sim-courier-32", "email": "sim-courier-32@rota.local", "firstName": "Sim", "lastName": "Kurye 32", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000033", "username": "sim-courier-33", "email": "sim-courier-33@rota.local", "firstName": "Sim", "lastName": "Kurye 33", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000034", "username": "sim-courier-34", "email": "sim-courier-34@rota.local", "firstName": "Sim", "lastName": "Kurye 34", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000035", "username": "sim-courier-35", "email": "sim-courier-35@rota.local", "firstName": "Sim", "lastName": "Kurye 35", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000036", "username": "sim-courier-36", "email": "sim-courier-36@rota.local", "firstName": "Sim", "lastName": "Kurye 36", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000037", "username": "sim-courier-37", "email": "sim-courier-37@rota.local", "firstName": "Sim", "lastName": "Kurye 37", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000038", "username": "sim-courier-38", "email": "sim-courier-38@rota.local", "firstName": "Sim", "lastName": "Kurye 38", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000039", "username": "sim-courier-39", "email": "sim-courier-39@rota.local", "firstName": "Sim", "lastName": "Kurye 39", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000040", "username": "sim-courier-40", "email": "sim-courier-40@rota.local", "firstName": "Sim", "lastName": "Kurye 40", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000041", "username": "sim-courier-41", "email": "sim-courier-41@rota.local", "firstName": "Sim", "lastName": "Kurye 41", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000042", "username": "sim-courier-42", "email": "sim-courier-42@rota.local", "firstName": "Sim", "lastName": "Kurye 42", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000043", "username": "sim-courier-43", "email": "sim-courier-43@rota.local", "firstName": "Sim", "lastName": "Kurye 43", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000044", "username": "sim-courier-44", "email": "sim-courier-44@rota.local", "firstName": "Sim", "lastName": "Kurye 44", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000045", "username": "sim-courier-45", "email": "sim-courier-45@rota.local", "firstName": "Sim", "lastName": "Kurye 45", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000046", "username": "sim-courier-46", "email": "sim-courier-46@rota.local", "firstName": "Sim", "lastName": "Kurye 46", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000047", "username": "sim-courier-47", "email": "sim-courier-47@rota.local", "firstName": "Sim", "lastName": "Kurye 47", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000048", "username": "sim-courier-48", "email": "sim-courier-48@rota.local", "firstName": "Sim", "lastName": "Kurye 48", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    { "id": "c1000000-0000-4000-8000-000000000049", "username": "sim-courier-49", "email": "sim-courier-49@rota.local", "firstName": "Sim", "lastName": "Kurye 49", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "dev", "temporary": false }], "realmRoles": ["courier"] },
+    {
+      "username": "service-account-merchant-demo-a",
+      "enabled": true,
+      "serviceAccountClientId": "merchant-demo-a",
+      "realmRoles": ["merchant"]
+    },
+    {
+      "username": "service-account-merchant-demo-b",
+      "enabled": true,
+      "serviceAccountClientId": "merchant-demo-b",
+      "realmRoles": ["merchant"]
+    },
+    {
+      "username": "service-account-other-api-client",
+      "enabled": true,
+      "serviceAccountClientId": "other-api-client",
+      "realmRoles": ["merchant"]
+    },
+    {
+      "username": "service-account-svc-internal",
+      "enabled": true,
+      "serviceAccountClientId": "svc-internal",
+      "realmRoles": ["service"]
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000001",
+      "username": "courier-1",
+      "email": "courier-1@rota.local",
+      "firstName": "Kurye",
+      "lastName": "Bir",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "dev", "temporary": false }],
+      "realmRoles": ["courier"]
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000002",
+      "username": "courier-2",
+      "email": "courier-2@rota.local",
+      "firstName": "Kurye",
+      "lastName": "İki",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "dev", "temporary": false }],
+      "realmRoles": ["courier"]
+    },
+    {
+      "id": "d0000000-0000-4000-8000-000000000001",
+      "username": "dispatcher-1",
+      "email": "dispatcher-1@rota.local",
+      "firstName": "Dispatcher",
+      "lastName": "Bir",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "dev", "temporary": false }],
+      "realmRoles": ["dispatcher"]
+    }
+  ]
+}

@@ -37,6 +37,12 @@ public sealed record FleetOptions
     /// <summary>Dispatch's REST address (shift, accept, reject).</summary>
     public Uri DispatchHttpUrl { get; init; } = new("http://localhost:5102");
 
+    /// <summary>Keycloak realm to get tokens from (e.g. http://localhost:8180/realms/rota). Without it the dev header is sent (Development only).</summary>
+    public Uri? Auth { get; init; }
+
+    /// <summary>The courier's id: derived from seed and index, or the fixed dev-realm id when using Keycloak (the token's sub must be a user that exists).</summary>
+    public Guid CourierId(int index) => Auth is null ? FleetRunner.CourierIdentity(Seed, index) : Rota.Sim.Common.SimCredentials.CourierId(index);
+
     /// <summary>Chance a courier accepts an offer. What is left after accept and reject is "never answers".</summary>
     public double AcceptRate { get; init; } = 0.6;
 
@@ -90,6 +96,7 @@ public sealed record FleetOptions
                 "couriers" => options with { Couriers = int.Parse(value, CultureInfo.InvariantCulture) },
                 "interval" => options with { IntervalSeconds = double.Parse(value, CultureInfo.InvariantCulture) },
                 "url" => options with { Url = new Uri(value) },
+                "auth" => options with { Auth = new Uri(value) },
                 "duration" => options with { DurationSeconds = int.Parse(value, CultureInfo.InvariantCulture) },
                 "disconnect-rate" => options with { DisconnectRate = double.Parse(value, CultureInfo.InvariantCulture) },
                 "reorder-rate" => options with { ReorderRate = double.Parse(value, CultureInfo.InvariantCulture) },
@@ -123,6 +130,11 @@ public sealed record FleetOptions
         if (options.MistypeRate is < 0 or > 1 || options.FailRate is < 0 or > 1 || options.MistypeRate + options.FailRate > 1 || options.TravelSeconds < 0)
         {
             throw new ArgumentException("--mistype-rate and --fail-rate must be within [0, 1] and add up to at most 1; --travel must be >= 0.");
+        }
+
+        if (options.Auth is not null && options.Couriers > Rota.Sim.Common.SimCredentials.MaxCouriers)
+        {
+            throw new ArgumentException($"With --auth the dev realm has {Rota.Sim.Common.SimCredentials.MaxCouriers} simulated couriers; use --couriers {Rota.Sim.Common.SimCredentials.MaxCouriers} or fewer.");
         }
 
         return options;

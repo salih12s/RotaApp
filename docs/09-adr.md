@@ -32,7 +32,7 @@ Her karar: **Bağlam** (problem) · **Karar** · **Sonuç** (kazanç ve bedel) �
 **Sonuç:** Basit, ölçeklenebilir, dürüst sözleşme. Bedel: işletme tarafına küçük bir sorumluluk (README'de belgelenir).
 
 ### ADR-005 — Kimlik sunucusu olarak Keycloak
-**Durum:** Öneri (açık karar K4)
+**Durum:** Kabul (K4; F08'de uygulandı)
 **Bağlam:** Üç farklı kimlik tipi (makine, kullanıcı, rol) gerekiyor. Kendi token sunucusunu yazmak güvenlik riski ve öğrenme hedefi dışı.
 **Karar:** Keycloak container'ı; realm/roller/test kullanıcıları seed dosyasıyla.
 **Sonuç:** Gerçek OIDC akışları (client credentials, kullanıcı girişi) öğrenilir. Bedel: ek container, ilk kurulum zahmeti.

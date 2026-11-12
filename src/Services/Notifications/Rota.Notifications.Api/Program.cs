@@ -15,7 +15,7 @@ using Rota.Notifications.Api.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddRotaServiceDefaults();
-builder.AddRotaDevAuth();
+builder.AddRotaAuth();
 builder.AddRotaDbContext<NotificationsDbContext>(NotificationsDbContext.ConnectionName);
 builder.AddRotaMessaging<NotificationsDbContext>();
 builder.AddRotaConsumer<NotificationsDbContext, OrderStatusChangedV1, OrderStatusChangedHandler>(

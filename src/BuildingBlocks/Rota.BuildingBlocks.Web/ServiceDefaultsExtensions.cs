@@ -80,8 +80,8 @@ public static class ServiceDefaultsExtensions
         app.MapHealthChecks(LivePath, new HealthCheckOptions
         {
             Predicate = registration => registration.Tags.Contains(LiveTag),
-        });
-        app.MapHealthChecks(ReadyPath);
+        }).AllowAnonymous();
+        app.MapHealthChecks(ReadyPath).AllowAnonymous();
 
         return app;
     }

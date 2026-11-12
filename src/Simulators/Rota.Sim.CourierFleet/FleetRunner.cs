@@ -27,13 +27,14 @@ public sealed class FleetRunner(FleetOptions options, FleetStats stats, TimeProv
             KeepAlivePingDelay = TimeSpan.FromSeconds(30),
             KeepAlivePingTimeout = TimeSpan.FromSeconds(20),
         };
+        using var credentials = new Rota.Sim.Common.SimCredentials(options.Auth, time);
         using var channel = GrpcChannel.ForAddress(options.Url, new GrpcChannelOptions { HttpHandler = handler });
         var ingest = new CourierLocationIngest.CourierLocationIngestClient(channel);
 
-        var tasks = Enumerable.Range(0, options.Couriers).Select(i => RunCourierAsync(ingest, i, stop)).ToList();
+        var tasks = Enumerable.Range(0, options.Couriers).Select(i => RunCourierAsync(ingest, credentials, i, stop)).ToList();
         if (options.ProbeNearby)
         {
-            tasks.Add(ProbeNearbyAsync(new CourierLocationQuery.CourierLocationQueryClient(channel), stop));
+            tasks.Add(ProbeNearbyAsync(new CourierLocationQuery.CourierLocationQueryClient(channel), credentials, stop));
         }
 
         // Simulator v2: the same couriers also work offers. Dispatch is another service on another port, so it gets its own channel
@@ -51,20 +52,19 @@ public sealed class FleetRunner(FleetOptions options, FleetStats stats, TimeProv
         if (dispatchChannel is not null && dispatchHttp is not null)
         {
             var offers = new CourierOffers.CourierOffersClient(dispatchChannel);
-            var responder = new OfferResponder(options, stats, ordersHttp, options.CodesFile is null ? null : new CodeBook(options.CodesFile));
+            var responder = new OfferResponder(options, stats, credentials, ordersHttp, options.CodesFile is null ? null : new CodeBook(options.CodesFile));
             tasks.AddRange(Enumerable.Range(0, options.Couriers).Select(i => responder.RunCourierAsync(offers, dispatchHttp, i, stop)));
         }
 
         await Task.WhenAll(tasks);
     }
 
-    private async Task RunCourierAsync(CourierLocationIngest.CourierLocationIngestClient ingest, int index, CancellationToken stop)
+    private async Task RunCourierAsync(CourierLocationIngest.CourierLocationIngestClient ingest, Rota.Sim.Common.SimCredentials credentials, int index, CancellationToken stop)
     {
         var random = new Random(HashCode.Combine(options.Seed, index));
         var walker = new RouteWalker(random);
         var interval = TimeSpan.FromSeconds(options.IntervalSeconds);
-        var identity = CourierIdentity(options.Seed, index);
-        var headers = new Metadata { { "x-dev-user", $"courier:{identity:D}" } };
+        var devUser = $"courier:{options.CourierId(index):D}";
 
         // A real phone keeps its counter across restarts. The simulator derives it from the clock, so a
         // second run continues above the first one (otherwise the server, rightly, calls every point old).
@@ -79,7 +79,7 @@ public sealed class FleetRunner(FleetOptions options, FleetStats stats, TimeProv
             try
             {
                 // Not cancelled on stop: a stream is ended by completing it, so the server sees a clean close.
-                using var call = ingest.StreamLocations(headers, cancellationToken: CancellationToken.None);
+                using var call = ingest.StreamLocations(await credentials.MetadataAsync(devUser), cancellationToken: CancellationToken.None);
                 var wentOffline = false;
                 LocationPoint? held = null;
 
@@ -158,9 +158,8 @@ public sealed class FleetRunner(FleetOptions options, FleetStats stats, TimeProv
         stats.PointSent();
     }
 
-    private async Task ProbeNearbyAsync(CourierLocationQuery.CourierLocationQueryClient query, CancellationToken stop)
+    private async Task ProbeNearbyAsync(CourierLocationQuery.CourierLocationQueryClient query, Rota.Sim.Common.SimCredentials credentials, CancellationToken stop)
     {
-        var headers = new Metadata { { "x-dev-user", "service:courier-fleet-sim" } };
         var request = new GetNearbyCouriersRequest { Lat = 41.01, Lon = 28.98, RadiusM = 5_000, Limit = 20 };
 
         while (!stop.IsCancellationRequested)
@@ -168,7 +167,7 @@ public sealed class FleetRunner(FleetOptions options, FleetStats stats, TimeProv
             var started = Stopwatch.GetTimestamp();
             try
             {
-                await query.GetNearbyCouriersAsync(request, headers, cancellationToken: CancellationToken.None);
+                await query.GetNearbyCouriersAsync(request, await credentials.MetadataAsync("service:courier-fleet-sim"), cancellationToken: CancellationToken.None);
                 stats.ProbeAnswered(Stopwatch.GetElapsedTime(started).TotalMilliseconds);
             }
             catch (RpcException)

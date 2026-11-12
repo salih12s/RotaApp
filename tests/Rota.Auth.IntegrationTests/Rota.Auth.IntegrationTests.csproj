@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Real Keycloak tokens against the real services and gateway (Testcontainers): Docker must be running. Category=Auth. -->
+
+  <PropertyGroup>
+    <!-- xunit.v3 test projects are executables. -->
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.Client" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="Testcontainers.Keycloak" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.Redis" />
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Shouldly" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Every service has a top-level Program; aliases keep them apart (same approach as Orders.IntegrationTests). -->
+    <ProjectReference Include="..\..\src\Services\Orders\Rota.Orders.Api\Rota.Orders.Api.csproj" Aliases="OrdersApi" />
+    <ProjectReference Include="..\..\src\Services\Dispatch\Rota.Dispatch.Api\Rota.Dispatch.Api.csproj" Aliases="DispatchApi" />
+    <ProjectReference Include="..\..\src\Services\Notifications\Rota.Notifications.Api\Rota.Notifications.Api.csproj" Aliases="NotificationsApi" />
+    <ProjectReference Include="..\..\src\Services\Tracking\Rota.Tracking.Api\Rota.Tracking.Api.csproj" Aliases="TrackingApi" />
+    <ProjectReference Include="..\..\src\Gateway\Rota.Gateway\Rota.Gateway.csproj" Aliases="GatewayApp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The same realm file docker compose imports: the tests exercise the real seed. -->
+    <None Include="..\..\deploy\keycloak\realm-rota.json" Link="realm-rota.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The simulators' token code, so the identities they use are proven against the real realm. -->
+    <Compile Include="../../src/Simulators/Shared/SimCredentials.cs" Link="Shared/SimCredentials.cs" />
+  </ItemGroup>
+
+</Project>

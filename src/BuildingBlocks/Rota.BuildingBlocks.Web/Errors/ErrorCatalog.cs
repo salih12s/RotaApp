@@ -16,6 +16,7 @@ public static class ErrorCatalog
     public const string Forbidden = "forbidden";
     public const string NotFound = "not-found";
     public const string ConcurrencyConflict = "concurrency-conflict";
+    public const string RateLimited = "rate-limited";
     public const string DependencyUnavailable = "dependency-unavailable";
     public const string UnexpectedError = "unexpected-error";
 
@@ -40,7 +41,7 @@ public static class ErrorCatalog
             ["job-not-assignable"] = (StatusCodes.Status409Conflict, "The order cannot be assigned in its current state."),
             ["delivery-code-locked"] = (StatusCodes.Status409Conflict, "The delivery code is locked after too many wrong attempts."),
             ["out-of-service-area"] = (StatusCodes.Status422UnprocessableEntity, "Pickup and dropoff are too far apart."),
-            ["rate-limited"] = (StatusCodes.Status429TooManyRequests, "Too many requests."),
+            [RateLimited] = (StatusCodes.Status429TooManyRequests, "Too many requests."),
             [DependencyUnavailable] = (StatusCodes.Status503ServiceUnavailable, "A required dependency is unavailable."),
             [UnexpectedError] = (StatusCodes.Status500InternalServerError, "An unexpected error occurred."),
         }.ToFrozenDictionary(StringComparer.Ordinal);

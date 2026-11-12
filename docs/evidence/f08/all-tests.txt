@@ -1,0 +1,38 @@
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Auth.IntegrationTests\bin\Debug\net10.0\Rota.Auth.IntegrationTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Tracking.UnitTests\bin\Debug\net10.0\Rota.Tracking.UnitTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Contracts.Tests\bin\Debug\net10.0\Rota.Contracts.Tests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Orders.UnitTests\bin\Debug\net10.0\Rota.Orders.UnitTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Dispatch.UnitTests\bin\Debug\net10.0\Rota.Dispatch.UnitTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Dispatch.IntegrationTests\bin\Debug\net10.0\Rota.Dispatch.IntegrationTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Tracking.IntegrationTests\bin\Debug\net10.0\Rota.Tracking.IntegrationTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Notifications.UnitTests\bin\Debug\net10.0\Rota.Notifications.UnitTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Orders.IntegrationTests\bin\Debug\net10.0\Rota.Orders.IntegrationTests.dll (net10.0|x64)
+Running tests from C:\Users\salih\source\repos\RotaApp\tests\Rota.Notifications.IntegrationTests\bin\Debug\net10.0\Rota.Notifications.IntegrationTests.dll (net10.0|x64)
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Contracts.Tests\bin\Debug\net10.0\Rota.Contracts.Tests.dll (net10.0|x64) passed (3s 297ms)
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Tracking.UnitTests\bin\Debug\net10.0\Rota.Tracking.UnitTests.dll (net10.0|x64) passed (4s 105ms)
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Notifications.UnitTests\bin\Debug\net10.0\Rota.Notifications.UnitTests.dll (net10.0|x64) passed (4s 228ms)
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Orders.UnitTests\bin\Debug\net10.0\Rota.Orders.UnitTests.dll (net10.0|x64) passed (6s 518ms)
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Dispatch.UnitTests\bin\Debug\net10.0\Rota.Dispatch.UnitTests.dll (net10.0|x64) passed (7s 727ms)
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Tracking.IntegrationTests\bin\Debug\net10.0\Rota.Tracking.IntegrationTests.dll (net10.0|x64) passed (28s 716ms)
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Notifications.IntegrationTests\bin\Debug\net10.0\Rota.Notifications.IntegrationTests.dll (net10.0|x64) passed (28s 589ms)
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Dispatch.IntegrationTests\bin\Debug\net10.0\Rota.Dispatch.IntegrationTests.dll (net10.0|x64) passed (53s 057ms)
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Auth.IntegrationTests\bin\Debug\net10.0\Rota.Auth.IntegrationTests.dll (net10.0|x64) passed (1m 02s 254ms)
+C:\Users\salih\source\repos\RotaApp\tests\Rota.Orders.IntegrationTests\bin\Debug\net10.0\Rota.Orders.IntegrationTests.dll (net10.0|x64) passed (1m 04s 442ms)
+
+Test run summary: Passed!
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Notifications.UnitTests\bin\Debug\net10.0\Rota.Notifications.UnitTests.dll (net10.0|x64) passed (4s 228ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Dispatch.IntegrationTests\bin\Debug\net10.0\Rota.Dispatch.IntegrationTests.dll (net10.0|x64) passed (53s 057ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Notifications.IntegrationTests\bin\Debug\net10.0\Rota.Notifications.IntegrationTests.dll (net10.0|x64) passed (28s 589ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Auth.IntegrationTests\bin\Debug\net10.0\Rota.Auth.IntegrationTests.dll (net10.0|x64) passed (1m 02s 254ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Tracking.IntegrationTests\bin\Debug\net10.0\Rota.Tracking.IntegrationTests.dll (net10.0|x64) passed (28s 716ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Orders.UnitTests\bin\Debug\net10.0\Rota.Orders.UnitTests.dll (net10.0|x64) passed (6s 518ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Tracking.UnitTests\bin\Debug\net10.0\Rota.Tracking.UnitTests.dll (net10.0|x64) passed (4s 105ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Contracts.Tests\bin\Debug\net10.0\Rota.Contracts.Tests.dll (net10.0|x64) passed (3s 297ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Orders.IntegrationTests\bin\Debug\net10.0\Rota.Orders.IntegrationTests.dll (net10.0|x64) passed (1m 04s 442ms)
+  C:\Users\salih\source\repos\RotaApp\tests\Rota.Dispatch.UnitTests\bin\Debug\net10.0\Rota.Dispatch.UnitTests.dll (net10.0|x64) passed (7s 727ms)
+
+  total: 864
+  failed: 0
+  succeeded: 864
+  skipped: 0
+  duration: 1m 09s 668ms

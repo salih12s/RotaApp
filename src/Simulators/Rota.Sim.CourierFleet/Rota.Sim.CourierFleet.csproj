@@ -14,4 +14,8 @@
     <ProjectReference Include="..\..\Contracts\Rota.Contracts.Protos\Rota.Contracts.Protos.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="../Shared/SimCredentials.cs" Link="Shared/SimCredentials.cs" />
+  </ItemGroup>
+
 </Project>

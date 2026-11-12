@@ -13,7 +13,7 @@ using Rota.Orders.Api.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddRotaServiceDefaults();
-builder.AddRotaDevAuth();
+builder.AddRotaAuth();
 builder.AddRotaDbContext<OrdersDbContext>(OrdersDbContext.ConnectionName);
 builder.AddRotaMessaging<OrdersDbContext>();
 builder.AddRotaConsumer<OrdersDbContext, DispatchStartedV1, DispatchStartedHandler>(

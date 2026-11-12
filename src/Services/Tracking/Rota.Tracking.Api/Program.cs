@@ -9,7 +9,7 @@ using Rota.Tracking.Api.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddRotaServiceDefaults();
-builder.AddRotaDevAuth();
+builder.AddRotaAuth();
 builder.AddRotaDbContext<TrackingDbContext>(TrackingDbContext.ConnectionName);
 builder.AddTrackingRedis();
 builder.Services.AddGrpc();

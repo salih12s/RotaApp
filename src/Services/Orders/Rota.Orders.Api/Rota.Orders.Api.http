@@ -10,16 +10,33 @@
 #   [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
 #   $k=[Security.Cryptography.ECDsa]::Create([Security.Cryptography.ECCurve+NamedCurves]::nistP256); $k.ExportPkcs8PrivateKeyPem()
 #
-# Auth until F08: X-Dev-User: merchant:<id> | courier:<guid> | dispatcher:<id> (Development only, ADR-006).
+# Auth (F08): real Keycloak tokens. Start Keycloak (part of deploy/docker-compose.yml: docker compose -f deploy/docker-compose.yml up -d keycloak) and send the "token"
+# request below first; the requests then use its access_token. Through the gateway, use @host = http://localhost:5000 instead.
+# Courier / dispatcher: grant_type=password&client_id=rota-app&username=courier-1 (or dispatcher-1)&password=dev.
+# X-Dev-User (merchant:<id> | courier:<guid> | dispatcher:<id>) still works in Development, without Keycloak (ADR-006).
 
 @host = http://localhost:5101
-@merchant = merchant:merchant-demo
+@keycloak = http://localhost:8180/realms/rota
+
+### Token for merchant A (client credentials; the token says merchant_id = merchant-demo-a)
+# @name token
+POST {{keycloak}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&client_id=merchant-demo-a&client_secret=dev-merchant-a-secret
+
+### Token for merchant B (to see that A's orders are 404 for B)
+# @name tokenB
+POST {{keycloak}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&client_id=merchant-demo-b&client_secret=dev-merchant-b-secret
 
 ### Create an order (repeat with the same key: same response, still one order)
 # @name create
 POST {{host}}/api/v1/orders
 Content-Type: application/json
-X-Dev-User: {{merchant}}
+Authorization: Bearer {{token.response.body.$.access_token}}
 Idempotency-Key: demo-key-001
 
 {
@@ -32,7 +49,7 @@ Idempotency-Key: demo-key-001
 ### Same key, different body → 409 idempotency-key-reused
 POST {{host}}/api/v1/orders
 Content-Type: application/json
-X-Dev-User: {{merchant}}
+Authorization: Bearer {{token.response.body.$.access_token}}
 Idempotency-Key: demo-key-001
 
 {
@@ -45,7 +62,7 @@ Idempotency-Key: demo-key-001
 ### Out of the 15 km service area → 422
 POST {{host}}/api/v1/orders
 Content-Type: application/json
-X-Dev-User: {{merchant}}
+Authorization: Bearer {{token.response.body.$.access_token}}
 Idempotency-Key: demo-key-ankara
 
 {
@@ -57,20 +74,20 @@ Idempotency-Key: demo-key-ankara
 
 ### Get the order
 GET {{host}}/api/v1/orders/{{create.response.body.$.id}}
-X-Dev-User: {{merchant}}
+Authorization: Bearer {{token.response.body.$.access_token}}
 
 ### Another merchant asks for it → 404 (not 403: existence is not revealed)
 GET {{host}}/api/v1/orders/{{create.response.body.$.id}}
-X-Dev-User: merchant:someone-else
+Authorization: Bearer {{tokenB.response.body.$.access_token}}
 
 ### List, newest first (pass nextCursor as "after" for the next page)
 GET {{host}}/api/v1/orders?limit=20
-X-Dev-User: {{merchant}}
+Authorization: Bearer {{token.response.body.$.access_token}}
 
 ### Cancel (body optional)
 POST {{host}}/api/v1/orders/{{create.response.body.$.id}}/cancel
 Content-Type: application/json
-X-Dev-User: {{merchant}}
+Authorization: Bearer {{token.response.body.$.access_token}}
 
 { "reason": "customer called" }
 

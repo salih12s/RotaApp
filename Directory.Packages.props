@@ -38,6 +38,15 @@
     <PackageVersion Include="StackExchange.Redis" Version="3.4.31" />
   </ItemGroup>
 
+  <ItemGroup Label="GraphQL (Ops API, F09)">
+    <!-- v16 stable (16.8 is preview); MIT; net10.0. Verified by restore/build in F09. -->
+    <PackageVersion Include="HotChocolate.AspNetCore" Version="16.7.5" />
+    <PackageVersion Include="HotChocolate.Data.EntityFramework" Version="16.7.5" />
+    <PackageVersion Include="HotChocolate.AspNetCore.Authorization" Version="16.7.5" />
+    <PackageVersion Include="HotChocolate.Subscriptions.Redis" Version="16.7.5" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.11.0" />
+  </ItemGroup>
+
   <ItemGroup Label="Security">
     <!-- ES256 tracking tokens (ADR-007); Ops API validates with the same library in F09. -->
     <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.23.0" />

@@ -327,24 +327,32 @@ type Courier {
   displayName: String!
   state: CourierState!
   currentOrder: Order              # DataLoader (order_view)
-  lastLocation: CourierLocation    # DataLoader → Tracking.GetLastLocations (tek gRPC çağrısı)
+  lastLocation: CourierLocationInfo  # DataLoader → Tracking.GetLastLocations (tek gRPC çağrısı; Tracking yavaş/kapalıysa null, hata yok)
 }
 
 type DispatchOverview { createdOrders: Int! unassignedOrders: Int! activeDeliveries: Int! availableCouriers: Int! }
 
 type Mutation {
-  assignCourier(input: AssignCourierInput!): AssignCourierPayload!     # → Dispatch REST
-  restartDispatch(input: RestartDispatchInput!): RestartDispatchPayload!
+  assignCourier(input: AssignCourierInput!): AssignCourierPayload!     # → Dispatch REST (manual-assign); input: { orderId, courierId }
+  restartDispatch(input: RestartDispatchInput!): RestartDispatchPayload!  # → Dispatch REST (restart); input: { orderId }
 }
-# Hata tipleri (mutation conventions): CourierNotAvailableError, JobNotAssignableError, OrderNotFoundError
+# Payload: { dispatchJob { orderId status courierId }, errors: [...] }. Hata tipleri (mutation conventions, Error arayüzü: message):
+#   assignCourier    → CourierNotAvailableError, JobNotAssignableError, OrderNotFoundError
+#   restartDispatch  → JobNotAssignableError, OrderNotFoundError
+# Dispatch'in 409 courier-not-available / courier-busy → CourierNotAvailableError; 409 job-not-assignable → JobNotAssignableError; 404 not-found → OrderNotFoundError
+# (404'ün gövdesi "courier" diyorsa CourierNotAvailableError: Dispatch eksik kuryeyi de not-found döner). Dispatch kapalı/yavaş/devre açık →
+# payload hatası DEĞİL, GraphQL hatası `dependency-unavailable`.
 
 type Subscription {
-  courierLocationUpdated(courierIds: [UUID!]): CourierLocation!   # dispatcher
-  orderStatusChanged: OrderStatusChangedEvent!                    # dispatcher
-  orderTracking(trackingToken: String!): TrackingUpdate!          # anonim; token doğrulanır (I-9)
+  courierLocationUpdated(courierIds: [UUID!]): CourierLocationUpdate!   # dispatcher; liste yoksa bütün kuryeler. { courierId lat lon recordedAt }
+  orderStatusChanged: OrderStatusChangedEvent!                          # dispatcher. { orderId merchantId merchantOrderRef fromStatus toStatus courierId occurredAt orderVersion }
+  orderTracking(trackingToken: String!): TrackingUpdate!                # anonim; token doğrulanır (I-9). { orderId lat lon recordedAt }: kurye kimliği yok
 }
 ```
 
 - **N+1:** `orders { courier { lastLocation } }` sorgusu 50 sipariş için 1 + 1 (courier_view) + 1 (gRPC) çağrı yapmalı, 101 değil. Testte sorgu sayısı sabitlenir.
-- **Maliyet sınırı:** Hot Chocolate cost analysis açık; azami maliyet ve derinlik sınırı aşılırsa sorgu çalıştırılmadan reddedilir.
+- **Maliyet sınırı:** Hot Chocolate cost analysis açık; azami maliyet ve derinlik sınırı aşılırsa sorgu çalıştırılmadan reddedilir. Hot Chocolate 16 varsayılanı 1000: liste alanı, çocuklarının maliyetini sayfa boyutuyla çarpar; 50 siparişlik `orders { courier { lastLocation } }` ~1030 tutar ve panelin kendi ana ekranı reddedilirdi. Bu yüzden `MaxFieldCost` ve `MaxTypeCost` 2500; 200 siparişlik aynı sorgu reddedilir (test var).
+- **Derinlik sınırı:** `AddMaxExecutionDepthRule(10)`. Şemada döngü var (`Order.courier.currentOrder.courier…`); sınır olmadan istemci sonsuz iç içe sorgu yazabilir. Panelin en derin meşru sorgusu `orders > nodes > courier > lastLocation` (4 seviye).
+- **Subscription yetkisi:** `[Authorize]` bir subscription alanında abonelik kurulurken değil, **her olay teslim edilirken** çalışır; tek başına yetkisiz birinin akışı açıp beklemesine izin verir. Bu yüzden `courierLocationUpdated` ve `orderStatusChanged` abonelik kurulurken `DispatcherOnly` politikasını kendisi de sorar (`AUTH_NOT_AUTHENTICATED` / `AUTH_NOT_AUTHORIZED`, hemen `complete`). `orderTracking` anonimdir; kapı token + durum kontrolüdür.
+- **`orderTracking` akışı:** token (ES256, `iss=rota-orders`, `aud=rota-tracking`, `order_id`, `exp`; Orders'ın `/.well-known/tracking-jwks` anahtarıyla) doğrulanır → sipariş `Assigned`/`PickedUp` değilse `tracking-not-available` → siparişin kuryesinin konumları akar. Sipariş bu durumlardan çıkınca (Delivered, Cancelled…) veya token'ın `exp` zamanı gelince akış `complete` ile biter. Hata kodları: `invalid-tracking-token` (sahte/süresi dolmuş/yanlış audience/çöp: hangisi olduğu söylenmez), `tracking-not-available`, `dependency-unavailable` (Orders anahtarı vermiyor). Public anahtar 10 dk önbelleklenir; bilinmeyen `kid` en çok 30 sn'de bir yeniden çekmeyi tetikler (anonim çağıran Orders'ı yıkamasın).
 - **Çok instance'lı subscription:** `orderStatusChanged` olayı RabbitMQ'dan Ops API instance'larından **yalnız birine** düşer (rakip tüketiciler). Diğer instance'lara bağlı panellerin de görmesi için Hot Chocolate subscription altyapısı **Redis** sağlayıcısıyla çalışır. Konum yayını ise her instance'ın Tracking kanalına kendisi abone olmasıyla dağılır.

@@ -265,10 +265,12 @@ CREATE TABLE courier_view (
     display_name  text        NOT NULL,
     state         text        NOT NULL,
     current_order uuid        NULL,
-    updated_at    timestamptz NOT NULL
+    updated_at    timestamptz NOT NULL,
+    courier_version int       NOT NULL      -- yalnız daha yeni sürümlü olay uygulanır (order_version ile aynı fikir)
 );
 ```
 
 - **Sırası bozuk olay:** `UPDATE order_view SET ... WHERE order_id = @id AND order_version < @v`. Eski olay geç gelirse 0 satır güncellenir, yok sayılır.
+- **`OrderCreated` henüz işlenmemişken `OrderStatusChanged` gelirse** (olaylar ayrı kuyruklardan gelir) tüketici hata fırlatır; mesaj gecikmeli yeniden deneme kuyruğuna gider (docs/05 §3), kaybolmaz. 0 satırın nedeni "eski olay" mı "satır yok" mu, ayrı bir `EXISTS` sorgusuyla ayrılır.
 - Okuma modeli tamamen olaylardan kurulduğu için silinip yeniden kurulabilir (bu ihtiyaç ölçümle doğarsa Kafka değerlendirmesi: ADR-013).
 - Kişisel veri (müşteri adı/telefonu) okuma modeline **kopyalanmaz**; panel ihtiyaç duyarsa Orders'tan yetkiyle istenir.

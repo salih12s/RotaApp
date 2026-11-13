@@ -19,7 +19,7 @@ public sealed partial class RateLimitMiddleware(
 {
     public async Task InvokeAsync(HttpContext context)
     {
-        var rule = options.Value.Rules.FirstOrDefault(r => Matches(r, context.Request));
+        var rule = options.Value.Rules.FirstOrDefault(r => Matches(r, context));
         if (rule is null)
         {
             await next(context);
@@ -53,9 +53,10 @@ public sealed partial class RateLimitMiddleware(
     [LoggerMessage(Level = LogLevel.Warning, Message = "Rate limit store unavailable; letting the request through (rule {Rule}).")]
     private static partial void LogStoreUnavailable(ILogger logger, Exception exception, string rule);
 
-    private static bool Matches(RateLimitRule rule, HttpRequest request) =>
-        (string.IsNullOrEmpty(rule.Method) || string.Equals(rule.Method, request.Method, StringComparison.OrdinalIgnoreCase))
-        && request.Path.StartsWithSegments(rule.PathPrefix.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
+    private static bool Matches(RateLimitRule rule, HttpContext context) =>
+        (string.IsNullOrEmpty(rule.Method) || string.Equals(rule.Method, context.Request.Method, StringComparison.OrdinalIgnoreCase))
+        && context.Request.Path.StartsWithSegments(rule.PathPrefix.TrimEnd('/'), StringComparison.OrdinalIgnoreCase)
+        && (!rule.AnonymousOnly || context.User.Identity?.IsAuthenticated != true);
 
     private static string PartitionOf(RateLimitRule rule, HttpContext context)
     {

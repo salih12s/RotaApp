@@ -1,6 +1,7 @@
 using Grpc.Core;
 using Microsoft.Extensions.Options;
 using Rota.BuildingBlocks.Primitives;
+using Rota.BuildingBlocks.Web.Auth;
 using Rota.Contracts.Tracking.V1;
 
 namespace Rota.Dispatch.Api.Infrastructure;
@@ -16,12 +17,11 @@ public sealed record NearbyCourierInfo(Guid CourierId, int DistanceMeters, DateT
 public sealed partial class TrackingCourierLocator(
     CourierLocationQuery.CourierLocationQueryClient client,
     IOptions<DispatchOptions> options,
+    ServiceCredentials credentials,
     ILogger<TrackingCourierLocator> logger)
 {
     public static readonly Error Unavailable = new("dependency-unavailable", "Tracking could not answer in time.");
 
-    // F08 turns this into a client-credentials token; until then DevAuth (ADR-006) accepts the header.
-    private static readonly Metadata _callerIdentity = new() { { "x-dev-user", "service:dispatch" } };
 
     public async Task<Result<IReadOnlyList<NearbyCourierInfo>>> FindNearbyAsync(
         double latitude, double longitude, CancellationToken cancellationToken)
@@ -40,15 +40,17 @@ public sealed partial class TrackingCourierLocator(
             // A gRPC deadline is an absolute wall-clock instant sent to the server, so it has to be the real
             // clock; the business TimeProvider (frozen in tests) would give an instant in the past.
             var deadline = DateTime.UtcNow + settings.NearbyDeadline;
-            var response = await client.GetNearbyCouriersAsync(request, _callerIdentity, deadline, cancellationToken);
+            var token = await credentials.GetBearerAsync(cancellationToken);
+            var caller = token is null ? new Metadata { { "x-dev-user", "service:dispatch" } } : new Metadata { { "authorization", $"Bearer {token}" } };
+            var response = await client.GetNearbyCouriersAsync(request, caller, deadline, cancellationToken);
 
             IReadOnlyList<NearbyCourierInfo> couriers = [.. response.Couriers.Select(c => new NearbyCourierInfo(
                 Guid.Parse(c.CourierId), c.DistanceM, c.LastSeenAt.ToDateTimeOffset()))];
             return Result.Success(couriers);
         }
-        catch (RpcException ex) when (ex.StatusCode is StatusCode.DeadlineExceeded or StatusCode.Unavailable)
+        catch (Exception ex) when (ex is RpcException { StatusCode: StatusCode.DeadlineExceeded or StatusCode.Unavailable } or HttpRequestException)
         {
-            LogTrackingFailed(logger, ex.StatusCode);
+            LogTrackingFailed(logger, (ex as RpcException)?.StatusCode ?? StatusCode.Unavailable);
             return Unavailable;
         }
     }

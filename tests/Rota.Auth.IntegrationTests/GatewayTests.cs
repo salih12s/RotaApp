@@ -131,4 +131,76 @@ public sealed class GatewayTests(AuthFixture fixture)
         responseA.StatusCode.ShouldBe(HttpStatusCode.TooManyRequests);
         responseB.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
+
+    /// <summary>A gateway whose <c>/graphql</c> goes to <paramref name="backend"/>, with the anonymous-only per-IP rule shrunk to <paramref name="limit"/> per minute (a unique bucket).</summary>
+    private ServiceHost<GatewayApp::Program> NewGraphQlGateway(FakeBackend backend, int limit) =>
+        new(fixture.ProductionSettings(new Dictionary<string, string>
+        {
+            ["ConnectionStrings:Redis"] = fixture.RedisConnection,
+            ["ReverseProxy:Clusters:ops:Destinations:d1:Address"] = backend.Address,
+            ["RateLimit:Rules:0:Name"] = NewRuleName(),
+            ["RateLimit:Rules:0:PathPrefix"] = "/graphql",
+            ["RateLimit:Rules:0:Limit"] = limit.ToString(CultureInfo.InvariantCulture),
+            ["RateLimit:Rules:0:PerSeconds"] = "60",
+            ["RateLimit:Rules:0:Key"] = "ip",
+            ["RateLimit:Rules:0:AnonymousOnly"] = "true",
+        }));
+
+    [Fact]
+    public async Task GraphQL_is_open_at_the_gateway_so_a_customer_can_follow_a_delivery_without_an_account()
+    {
+        await using var backend = await FakeBackend.StartAsync();
+        await using var gateway = NewGraphQlGateway(backend, limit: 5);
+        using var client = gateway.CreateClient();
+        using var request = Bearer.Request(HttpMethod.Post, "/graphql");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // The gateway does not decide who may see what here: Ops API checks the tracking link or the dispatcher's token (docs/06 §2).
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        backend.LastAuthorization.ShouldBe(string.Empty);
+    }
+
+    [Fact]
+    public async Task Anonymous_GraphQL_callers_share_a_strict_per_IP_limit()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var backend = await FakeBackend.StartAsync();
+        await using var gateway = NewGraphQlGateway(backend, limit: 3);
+        using var client = gateway.CreateClient();
+
+        var statuses = new List<HttpStatusCode>();
+        for (var i = 0; i < 6; i++)
+        {
+            using var request = Bearer.Request(HttpMethod.Post, "/graphql");
+            using var response = await client.SendAsync(request, ct);
+            statuses.Add(response.StatusCode);
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            {
+                response.Headers.RetryAfter.ShouldNotBeNull();
+            }
+        }
+
+        statuses.Take(3).ShouldAllBe(s => s == HttpStatusCode.OK);
+        statuses.Skip(3).ShouldContain(HttpStatusCode.TooManyRequests);
+    }
+
+    [Fact]
+    public async Task A_signed_in_dispatcher_is_not_throttled_by_the_anonymous_limit_and_the_token_goes_through_untouched()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var backend = await FakeBackend.StartAsync();
+        await using var gateway = NewGraphQlGateway(backend, limit: 2);
+        using var client = gateway.CreateClient();
+        var token = await fixture.Tokens.DispatcherAsync();
+
+        for (var i = 0; i < 8; i++)
+        {
+            using var request = Bearer.Request(HttpMethod.Post, "/graphql", token);
+            using var response = await client.SendAsync(request, ct);
+            response.StatusCode.ShouldBe(HttpStatusCode.OK, $"request {i + 1}: the panel's own traffic must not count against the anonymous limit");
+        }
+
+        backend.LastAuthorization.ShouldBe($"Bearer {token}", "Ops API validates the dispatcher token itself");
+    }
 }

@@ -27,4 +27,10 @@ public sealed class RateLimitRule
 
     /// <summary>Whose bucket: <c>merchant</c> (merchant_id claim), <c>subject</c> (sub claim) or <c>ip</c>. A token that lacks the claim falls back to the IP.</summary>
     public string Key { get; set; } = "subject";
+
+    /// <summary>
+    /// The rule applies only to callers without a valid token. <c>/graphql</c> serves signed-in dispatchers and anonymous customers (tracking link) on one path;
+    /// the strict per-IP limit is meant for the second group and must not throttle the panel.
+    /// </summary>
+    public bool AnonymousOnly { get; set; }
 }

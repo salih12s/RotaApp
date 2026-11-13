@@ -21,6 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddRotaServiceDefaults();
 builder.AddRotaAuth();
+builder.AddRotaServiceCredentials();
 
 // Runs the actions queued with DbContext.AfterCommit (e.g. the Redis "new offer" push) once a transaction has committed.
 builder.Services.AddSingleton<IInterceptor, AfterCommitInterceptor>();

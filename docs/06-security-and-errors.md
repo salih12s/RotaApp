@@ -32,6 +32,7 @@ Keycloak F08'de gelir. Ama yetki kuralları (kaynak sahipliği) ilk günden yaz�
 - **Doğrulama:** imza anahtarı `Authority`'nin discovery belgesinden gelir (anahtar rotasyonu için deploy gerekmez); `aud` = `Auth:Audience` (`rota-api`) zorunlu, yani başka bir API için üretilmiş geçerli token da reddedilir (401); `exp` için 30 sn tolerans.
 - **Claim eşlemesi:** `MapInboundClaims=false`; `sub`, `role` (çok değerli), `merchant_id` Keycloak'ın yazdığı adla okunur. Keycloak'ta `role` claim'ini realm rolünden üreten ve `rota-api` audience'ını ekleyen mapper her client'ta tanımlı (`deploy/keycloak/realm-rota.json`).
 - **`Auth:RequireHttpsMetadata`** varsayılan `true`. Yalnız kapalı ağdaki Keycloak için (yerel compose, testler) `false` yapılır.
+- **Servisler arası çağrı (`ServiceCredentials`):** Dispatch → Tracking ve Ops API → Tracking, `Auth:Service:ClientId/ClientSecret` ile Keycloak client-credentials token alır (rol `service`; süresi dolmadan 30 sn önce yenilenir). Sır user-secrets / ortam değişkeni / platform sır deposunda durur, repoda değil. Client yoksa **Development** `X-Dev-User: service:<ad>` başlığına düşer; **başka ortamda hata verir** (sessizce düşürmez). F08 bunu kapsamıyordu: Dispatch başlık gönderiyordu ve Production'da Tracking 401 verirdi; F09 sırasında düzeltildi; Keycloak yolu gerçek Keycloak'a karşı testli (`ServiceCredentialsTests`: Tracking token'ı kabul ediyor, önbellek + yenileme, yanlış sır, Production'da client yoksa hata).
 - **Dev realm kimlikleri** (yalnız `deploy/keycloak/realm-rota.json`; parola `dev`): merchant client'ları `merchant-demo-a/b` ve simülatör için `merchant-sim-0..4`; kurye kullanıcıları `courier-1/2` ve `sim-courier-00..49` (`sub` = sabit GUID `c1000000-0000-4000-8000-0000000000NN`); `dispatcher-1`; servisler arası `svc-internal` (rol `service`); `other-api-client` (testlerde "başka API'nin token'ı" için, `aud` yok). `rota-app` public client'ında **direct access grant (parola)** yalnız simülatörler ve `.http` dosyaları token alabilsin diye açık; gerçek mobil/web istemci Authorization Code + PKCE kullanır.
 
 ## 2. Yetki politikaları
@@ -45,6 +46,9 @@ Keycloak F08'de gelir. Ama yetki kuralları (kaynak sahipliği) ilk günden yaz�
 | Atanmış kurye | `order.assigned_courier_id == token.sub` | **404** |
 | Teklif sahipliği | `offer.courier_id == token.sub` | **404** |
 | Takip | token imzası + `exp` + `order_id` eşleşmesi + sipariş `Assigned`/`PickedUp` | Subscription hata ile kapanır |
+| Dispatcher akışları (GraphQL subscription) | rol `dispatcher`; **abonelik kurulurken** ayrıca sorulur (bkz. docs/05 §5) | `AUTH_NOT_AUTHENTICATED` / `AUTH_NOT_AUTHORIZED` |
+
+> **`/graphql` gateway'de anonim rotadır (karar, F09).** Müşteri hesapsız, yalnız takip linkiyle izler; gateway'in "giriş zorunlu" varsayılanı bu yolu kapatırdı. YARP rotasında `AuthorizationPolicy: anonymous`; gateway kimin neyi görebileceğine karar vermez (docs/06 §1'deki kural: yetkiyi servis verir), dispatcher token'ı değiştirilmeden Ops API'ye geçer ve alan bazında `DispatcherOnly` orada uygulanır. Yolun koruması anonim-takip hız sınırıdır (IP başına 10/dk; WebSocket bağlantı denemeleri de sayılır). **Bilinen sınır:** tarayıcı WebSocket'i `Authorization` başlığı gönderemez; panelin tarayıcıdan bağlanması için token'ın `connection_init` yükünden ya da `access_token` sorgu parametresinden okunması gerekir. Bu F09'da yazılmadı (başlık gönderebilen istemciler çalışır).
 
 > Sahiplik ihlalinde 404: "Bu sipariş var ama senin değil" bilgisini sızdırmamak için (enumeration saldırısını zorlaştırır). Rol eksikliğinde 403: kim olduğunu biliyoruz, bu işlem rolüne kapalı.
 
@@ -73,7 +77,7 @@ Gateway 2 instance çalıştığında sınırın instance başına değil **topl
 
 **Nasıl çalışır (F08):** Her sınır bir **token bucket**'tır (kova): kapasite = "bir anda gelebilecek istek", dolum = `Limit / PerSeconds` jeton/sn. "50 istek/sn" = Limit 50, PerSeconds 1. Okuma-doldurma-harcama tek Lua betiğidir, Redis betiği bölmeden çalıştırır; iki instance son jetonu birlikte alamaz. Betik zamanı Redis'in kendi saatinden (`TIME`) okur, instance saatleri hesaba girmez (sabit pencerenin sınırdaki 2× patlaması da yok). Aşımda `429` + `Retry-After` (`rate-limited`). Kurallar `RateLimit:Rules` ayarında, ilk eşleşen kazanır; anahtar `merchant_id` / `sub` / IP (claim yoksa IP). Sıra: önce kimlik doğrulama (401), sonra limit; yani token'sız istekler bir merchant'ın kovasını tüketemez.
 
-**Redis kapalıysa:** limit **uygulanmaz** (fail open, uyarı loglanır). Gerekçe: limitleyici kapasiteyi korur, güvenlik sınırı değildir; token zaten doğrulandı. Bedel: Redis kesintisinde aşırı yük koruması geçici olarak yoktur. Anonim takip kuralı (`/graphql`, IP başına 10/dk) F09'da rota eklenince devreye girer; kural şimdiden ayarda.
+**Redis kapalıysa:** limit **uygulanmaz** (fail open, uyarı loglanır). Gerekçe: limitleyici kapasiteyi korur, güvenlik sınırı değildir; token zaten doğrulandı. Bedel: Redis kesintisinde aşırı yük koruması geçici olarak yoktur. Anonim takip kuralı (`/graphql`, IP başına 10/dk) F09'da devreye girdi; `AnonymousOnly: true` ile yalnız token'sız çağıranlara uygulanır (aynı yolu kullanan giriş yapmış dispatcher panelini yavaşlatmaz).
 
 ## 4. Kişisel veri (KVKK) ve sırlar
 
@@ -127,8 +131,8 @@ Gateway 2 instance çalıştığında sınırın instance başına değil **topl
 | Çağrı | Timeout | Retry | Circuit breaker | Not |
 |---|---|---|---|---|
 | Dispatch → Tracking `GetNearbyCouriers` | 200 ms deadline | 1 kez (`UNAVAILABLE`) | — | Başarısızsa iş `next_search_at` ile ertelenir |
-| Ops API → Dispatch (elle atama) | 2 sn | **yok** (komut; tekrar riskli) | Var | Kullanıcıya hata döner, kendisi tekrar dener |
-| Ops API → Tracking `GetLastLocations` | 300 ms | yok | Var | Konumsuz yanıt döner (degrade) |
+| Ops API → Dispatch (elle atama, yeniden başlatma) | 2 sn | **yok** (komut; tekrar riskli) | Var (aynı eşikler) | `dependency-unavailable` GraphQL hatası; iş kuralı reddi (409/404) devreyi etkilemez; testli |
+| Ops API → Tracking `GetLastLocations` | 300 ms | yok | Var (30 sn'de ≥5 çağrı ve %50 hata → 15 sn açık) | Konumsuz yanıt döner (degrade); testli |
 | Notifications → işletme webhook | 10 sn | Kendi zamanlaması (DB'de `next_attempt_at`) | İşletme başına | 5 ardışık hata → 1 dk boyunca o işletmeye istek yok |
 | Outbox relay → RabbitMQ | 5 sn (confirm) | Bir sonraki turda tekrar | — | Mesaj DB'de kalır; kayıp yok |
 | Tüketici iş hatası | — | 3 kez, artan gecikme | — | Sonra `.dlq` |

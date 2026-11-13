@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Ops API against a real PostgreSQL (Testcontainers): Docker must be running. -->
+
+  <PropertyGroup>
+    <!-- xunit.v3 test projects are executables. -->
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.Redis" />
+    <PackageReference Include="StackExchange.Redis" />
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Shouldly" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Services\OpsApi\Rota.OpsApi\Rota.OpsApi.csproj" />
+    <ProjectReference Include="..\Rota.TestKit\Rota.TestKit.csproj" />
+  </ItemGroup>
+
+</Project>

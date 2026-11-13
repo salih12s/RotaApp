@@ -91,7 +91,7 @@ public sealed class TrackingGrpcAuthTests(AuthFixture fixture)
     }
 
     /// <summary>The in-memory server answers with HTTP/1.1 framing; gRPC clients insist on HTTP/2, so the response version is relabelled.</summary>
-    private sealed class Http2ResponseHandler : DelegatingHandler
+    internal sealed class Http2ResponseHandler : DelegatingHandler
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {

@@ -1,0 +1,6 @@
+failed Rota.Orders.IntegrationTests.Messaging.DispatchFlowTests.Delivery_InOrders_FreesTheCourierInDispatchWithinTwoSeconds (6s 143ms)
+Test run summary: Failed!
+  total: 939
+  failed: 1
+  succeeded: 938
+  skipped: 0
